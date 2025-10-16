@@ -22,8 +22,17 @@ use Kreait\Firebase\Exception\Auth\InvalidToken;
 
 // 2. Configurar o Firebase Admin SDK
 try {
-    $factory = (new Factory)->withServiceAccount(__DIR__ . '../imperium-0001-firebase-adminsdk-fbsvc-ffc86182cf.json');
+    // Busca a credencial da variável de ambiente
+    $firebaseCredentials = getenv('IMPERIUM_FIREBASE');
+
+    if ($firebaseCredentials === false) {
+        throw new \Exception('A variável de ambiente IMPERIUM_FIREBASE não está definida.');
+    }
+
+    // Inicializa o Factory com o conteúdo da credencial
+    $factory = (new Factory)->withServiceAccount($firebaseCredentials);
     $auth = $factory->createAuth();
+
 } catch (\Exception $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro na configuração do Firebase: ' . $e->getMessage()]);
