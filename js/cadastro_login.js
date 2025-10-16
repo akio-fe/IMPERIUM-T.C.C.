@@ -48,7 +48,6 @@ const emailInputCadastro = document.getElementById("email");
 const senhaInputCadastro = document.getElementById("senha");
 const nomeInputCadastro = document.getElementById("nome");
 const cpfInputCadastro = document.getElementById("CPF");
-const telInputCadastro = document.getElementById("tel"); // Assumindo que você tem um campo de telefone
 
 // Botão de login com Google
 document
@@ -97,16 +96,12 @@ loginForm.addEventListener("submit", async (e) => {
 formCadastro.addEventListener("submit", function (event) {
   event.preventDefault();
 
-  // Limpa mensagens anteriores
-  mensagemFirebase.innerHTML = "";
-
   // Pega os valores dentro do event listener
   const email = emailInputCadastro.value;
   const senha = senhaInputCadastro.value;
   const senhaconf = senhaconfInput.value;
   const nome = nomeInputCadastro.value;
   const cpf = cpfInputCadastro.value;
-  const tel = telInputCadastro.value;
 
   // Verifica se as senhas coincidem
   if (senha !== senhaconf) {
@@ -129,7 +124,6 @@ formCadastro.addEventListener("submit", function (event) {
       return setDoc(doc(db, "unverified_users", user.uid), {
         nome: nome,
         cpf: cpf,
-        tel: tel,
         email: user.email,
         uid: user.uid,
       });
