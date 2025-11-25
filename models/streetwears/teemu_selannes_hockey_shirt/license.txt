@@ -1,0 +1,11 @@
+Model Information:
+* title:	Teemu Selänne's Hockey Shirt
+* source:	https://sketchfab.com/3d-models/teemu-selannes-hockey-shirt-912dd94e0c9c4b43935e21a98c1fe115
+* author:	urheilumuseo (https://sketchfab.com/urheilumuseo)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Teemu Selänne's Hockey Shirt" (https://sketchfab.com/3d-models/teemu-selannes-hockey-shirt-912dd94e0c9c4b43935e21a98c1fe115) by urheilumuseo (https://sketchfab.com/urheilumuseo) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)

@@ -1,0 +1,399 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 28373,
+      "max": [
+        9.617240905761719,
+        12.670949935913086,
+        11.350000381469727
+      ],
+      "min": [
+        1.1364412307739258,
+        -0.37545013427734375,
+        -11.348799705505371
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 340476,
+      "componentType": 5126,
+      "count": 28373,
+      "max": [
+        0.9999460577964783,
+        1.0,
+        0.9999942779541016
+      ],
+      "min": [
+        -0.9999784231185913,
+        -0.9999995827674866,
+        -0.9999973773956299
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 28373,
+      "max": [
+        0.9815999865531921,
+        0.9894000291824341
+      ],
+      "min": [
+        0.013500000350177288,
+        0.01260000467300415
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 162384,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 680952,
+      "componentType": 5126,
+      "count": 28373,
+      "max": [
+        -1.1364412307739258,
+        12.670949935913086,
+        11.350000381469727
+      ],
+      "min": [
+        -9.617240905761719,
+        -0.37545013427734375,
+        -11.348799705505371
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 1021428,
+      "componentType": 5126,
+      "count": 28373,
+      "max": [
+        0.9999784231185913,
+        1.0,
+        0.9999942779541016
+      ],
+      "min": [
+        -0.9999461770057678,
+        -0.9999995827674866,
+        -0.9999973773956299
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 226984,
+      "componentType": 5126,
+      "count": 28373,
+      "max": [
+        0.9815999865531921,
+        0.9894000291824341
+      ],
+      "min": [
+        0.013500000350177288,
+        0.01260000467300415
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 649536,
+      "componentType": 5125,
+      "count": 162384,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "SRUSH651 2th☑ (https://sketchfab.com/THE-OFFICIAL-SRUSH651)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/air-jordan-7-patta-7374b6a1a9c24daf940d16d52e9aa9a0",
+      "title": "AIR JORDAN 7 PATTA"
+    },
+    "generator": "Sketchfab-16.56.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 1299072,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 453968,
+      "byteOffset": 1299072,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1361904,
+      "byteOffset": 1753040,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 3114944,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/lambert3_baseColor.jpeg"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emissiveTexture": {
+        "index": 0
+      },
+      "name": "lambert3",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Nike_Air_Jordan_7_x_Patta_OG_sp_lambert3_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "Nike_Air_Jordan_7_x_Patta_OG_sp1_lambert3_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 5,
+            "POSITION": 4,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.2204459996194763e-18,
+        0.009999999776482582,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        2.2204459996194763e-18,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "USDRoot"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "scene"
+    },
+    {
+      "children": [
+        4
+      ],
+      "matrix": [
+        100.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        100.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        100.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Meshes"
+    },
+    {
+      "children": [
+        5
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        6
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.009999999776482582,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "f183d09ad0444c45bdeb81846b515018_fbx"
+    },
+    {
+      "children": [
+        7,
+        10
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        8
+      ],
+      "name": "Nike_Air_Jordan_7_x_Patta_OG_sp"
+    },
+    {
+      "children": [
+        9
+      ],
+      "name": "Nike_Air_Jordan_7_x_Patta_OG_sp_lambert3_0"
+    },
+    {
+      "mesh": 0,
+      "name": "Nike_Air_Jordan_7_x_Patta_OG_sp_lambert3_0"
+    },
+    {
+      "children": [
+        11
+      ],
+      "name": "Nike_Air_Jordan_7_x_Patta_OG_sp1"
+    },
+    {
+      "children": [
+        12
+      ],
+      "name": "Nike_Air_Jordan_7_x_Patta_OG_sp1_lambert3_0"
+    },
+    {
+      "mesh": 1,
+      "name": "Nike_Air_Jordan_7_x_Patta_OG_sp1_lambert3_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    }
+  ]
+}

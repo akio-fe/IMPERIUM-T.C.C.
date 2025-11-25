@@ -1,0 +1,412 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #1a1a1a;
+  color: #f0e6d2;
+  overflow-x: hidden;
+}
+
+header {
+  background-color: #000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 40px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+header img.logo {
+  height: 60px;
+  transition: 0.3s;
+}
+
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.search-bar input {
+  width: 0;
+  opacity: 0;
+  transition: all 0.4s ease;
+  padding: 12px 20px 12px 40px;
+  border: none;
+  border-radius: 40px;
+  background-color: #333;
+  color: #f0e6d2;
+  font-size: 15px;
+  outline: none;
+}
+
+.search-bar input.mostrar {
+  width: 260px;
+  opacity: 1;
+}
+
+.search-bar .search-icon,
+.search-bar .fechar {
+  display: none;
+  position: absolute;
+  cursor: pointer;
+}
+
+.search-bar .search-icon {
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+  opacity: 0.5;
+}
+
+.search-bar .fechar {
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+}
+
+.icons {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.icons img {
+  height: 30px;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.icons img:hover {
+  filter: invert(76%) sepia(62%) saturate(426%) hue-rotate(4deg) brightness(96%) contrast(88%);
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  padding: 50px 20px;
+  width: 100%;
+}
+
+.estado-lista {
+  text-align: center;
+  font-size: 18px;
+  padding: 40px 16px;
+}
+
+.estado-erro {
+  color: #ff6b6b;
+}
+
+.container-produto {
+  background-color: #2a2a2a;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 40px;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  max-width: 1300px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.galeria {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.galeria .thumb {
+  width: 60px;
+  height: 60px;
+  background: #444;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.galeria .principal {
+  width: 120px;
+  height: 120px;
+}
+
+#container3D {
+  flex: 1;
+  max-width: 600px;
+  aspect-ratio: 1/1;
+  background-color: #333;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+#container3D.placeholder::after {
+  content: 'Pré-visualização indisponível';
+  color: #888;
+  font-size: 14px;
+}
+
+.detalhes {
+  flex: 1;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.detalhes h1 {
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.detalhes .categoria {
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: #d4af37;
+}
+
+.detalhes .cor {
+  margin-bottom: 8px;
+  color: #ccc;
+}
+
+.preco {
+  font-size: 26px;
+  font-weight: bold;
+  color: #d4af37;
+  margin-bottom: 10px;
+}
+
+.parcelamento {
+  color: #d4af37;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.tamanhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.tamanhos button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #555;
+  background-color: #1a1a1a;
+  color: #f0e6d2;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.tamanhos button.selected,
+.tamanhos button:hover {
+  background-color: #d4af37;
+  color: #000;
+  border-color: #d4af37;
+}
+
+.btn-verde {
+  display: block;
+  width: 100%;
+  background-color: #d4af37;
+  color: #000;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin: 24px 0;
+}
+
+.btn-verde:hover {
+  background-color: #b99530;
+}
+
+.toggle-favorito {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  font-size: 24px;
+  color: #d4af37;
+}
+
+.toggle-favorito input {
+  display: none;
+}
+
+.toggle-favorito span {
+  padding: 8px 16px;
+  border-radius: 12px;
+  background-color: #333;
+  transition: background-color 0.3s ease;
+  border: 2px solid #d4af37;
+}
+
+.toggle-favorito input:checked + span {
+  background-color: #d4af37;
+  color: #000;
+}
+
+@media (max-width: 1024px) {
+  header {
+    padding: 16px 24px;
+  }
+
+  .container-produto {
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    gap: 30px;
+  }
+
+  #container3D {
+    max-width: 90%;
+  }
+
+  .detalhes {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    gap: 10px;
+  }
+
+  header img.logo {
+    height: 55px;
+  }
+
+  .icons {
+    gap: 12px;
+  }
+
+  .search-bar input.mostrar {
+    width: 200px;
+  }
+
+  main {
+    padding: 20px 10px;
+  }
+
+  .container-produto {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 24px 16px;
+    gap: 24px;
+    border-radius: 12px;
+  }
+
+  .galeria {
+    order: -1;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .galeria .thumb {
+    width: 50px;
+    height: 50px;
+  }
+
+  #container3D {
+    width: 100%;
+    max-width: none;
+    aspect-ratio: 1/1;
+  }
+
+  .detalhes {
+    width: 100%;
+    max-width: none;
+    padding: 0 10px;
+  }
+
+  .detalhes h1 {
+    font-size: 22px;
+  }
+
+  .preco {
+    font-size: 22px;
+  }
+
+  .parcelamento {
+    font-size: 15px;
+  }
+
+  .btn-verde {
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .toggle-favorito span {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-bar input.mostrar {
+    width: 160px;
+  }
+
+  header img.logo {
+    height: 45px;
+  }
+
+  .container-produto {
+    padding: 20px 12px;
+    gap: 20px;
+  }
+
+  .galeria .thumb {
+    width: 45px;
+    height: 45px;
+  }
+
+  .btn-verde {
+    font-size: 15px;
+    padding: 12px;
+  }
+
+  .tamanhos button {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+
+  .detalhes h1 {
+    font-size: 20px;
+  }
+
+  .preco {
+    font-size: 20px;
+  }
+}

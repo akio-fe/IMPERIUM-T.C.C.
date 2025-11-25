@@ -1,0 +1,503 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        25.52278709411621,
+        11.377902030944824,
+        55.599708557128906
+      ],
+      "min": [
+        -25.968584060668945,
+        -14.772751808166504,
+        -53.366119384765625
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 786384,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.9999886751174927,
+        0.9999939203262329,
+        0.9999704957008362
+      ],
+      "min": [
+        -0.9999948740005493,
+        -0.9999979734420776,
+        -0.9996416568756104
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.9996985793113708,
+        0.9999850988388062,
+        0.7870810627937317,
+        1.0
+      ],
+      "min": [
+        -0.9999866485595703,
+        -0.9999837875366211,
+        -0.9432181119918823,
+        1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.9871741533279419,
+        0.9949080944061279
+      ],
+      "min": [
+        0.017388779670000076,
+        0.04023413360118866
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 372864,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 1572768,
+      "componentType": 5126,
+      "count": 33796,
+      "max": [
+        26.133834838867188,
+        12.555893898010254,
+        55.601280212402344
+      ],
+      "min": [
+        -25.26698112487793,
+        -16.714862823486328,
+        -53.362308502197266
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 1978320,
+      "componentType": 5126,
+      "count": 33796,
+      "max": [
+        0.9999886751174927,
+        0.9999921321868896,
+        0.9997861981391907
+      ],
+      "min": [
+        -0.9999974966049194,
+        -0.9998441338539124,
+        -0.9999145269393921
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 1048512,
+      "componentType": 5126,
+      "count": 33796,
+      "max": [
+        0.9996948838233948,
+        0.9997473955154419,
+        0.963141143321991,
+        1.0
+      ],
+      "min": [
+        -0.9999968409538269,
+        -0.9999980926513672,
+        -0.9999994039535522,
+        1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 524256,
+      "componentType": 5126,
+      "count": 33796,
+      "max": [
+        0.9860127568244934,
+        0.9946926832199097
+      ],
+      "min": [
+        0.021088220179080963,
+        0.0439104326069355
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 1491456,
+      "componentType": 5125,
+      "count": 190977,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 2383872,
+      "componentType": 5126,
+      "count": 4134,
+      "max": [
+        1.008256196975708,
+        0.6662793159484863,
+        0.9987235069274902
+      ],
+      "min": [
+        -0.8981950283050537,
+        -0.5866691470146179,
+        -0.9729266166687012
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 2433480,
+      "componentType": 5126,
+      "count": 4134,
+      "max": [
+        0.9992207288742065,
+        0.9888385534286499,
+        0.9999112486839294
+      ],
+      "min": [
+        -0.9957733154296875,
+        -0.9999188780784607,
+        -0.998031735420227
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 1589248,
+      "componentType": 5126,
+      "count": 4134,
+      "max": [
+        0.9998567700386047,
+        0.9992865324020386,
+        0.9974530339241028,
+        1.0
+      ],
+      "min": [
+        -0.9979446530342102,
+        -0.996792197227478,
+        -0.997463583946228,
+        1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 794624,
+      "componentType": 5126,
+      "count": 4134,
+      "max": [
+        0.9928492903709412,
+        0.9878982901573181
+      ],
+      "min": [
+        0.1938115954399109,
+        0.815362274646759
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 2255364,
+      "componentType": 5125,
+      "count": 21888,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "Roman Demichev (https://sketchfab.com/romazu3)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/jnco-twin-cannon-baggy-jeans-024efe9c2b4345409e3b703ab7f565fc",
+      "title": "JNCO Twin Cannon Baggy Jeans"
+    },
+    "generator": "Sketchfab-16.51.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 2342916,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 827696,
+      "byteOffset": 2342916,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2483088,
+      "byteOffset": 3170612,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1655392,
+      "byteOffset": 5653700,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 7309092,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/Scene_-_Root_baseColor.png"
+    },
+    {
+      "uri": "textures/Scene_-_Root_metallicRoughness.png"
+    },
+    {
+      "uri": "textures/Scene_-_Root_normal.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "Scene_-_Root",
+      "normalTexture": {
+        "index": 2
+      },
+      "occlusionTexture": {
+        "index": 1
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 1
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "JNCO_Twin_Cannon__0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3
+          },
+          "indices": 4,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "JNCO_Twin_Cannon__0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 6,
+            "POSITION": 5,
+            "TANGENT": 7,
+            "TEXCOORD_0": 8
+          },
+          "indices": 9,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "Cylinder.001__0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 11,
+            "POSITION": 10,
+            "TANGENT": 12,
+            "TEXCOORD_0": 13
+          },
+          "indices": 14,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -5.053215392444312e-16,
+        1.0,
+        0.0,
+        0.0,
+        -1.0,
+        -5.053215392444312e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "44495fed45ba4cfa8b6803130a073b69.fbx"
+    },
+    {
+      "children": [
+        3,
+        6
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4,
+        5
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -0.047770846635103226,
+        0.31012099981307983,
+        53.1777458190918,
+        1.0
+      ],
+      "name": "JNCO_Twin_Cannon"
+    },
+    {
+      "mesh": 0,
+      "name": "JNCO_Twin_Cannon__0"
+    },
+    {
+      "mesh": 1,
+      "name": "JNCO_Twin_Cannon__0"
+    },
+    {
+      "children": [
+        7
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        2.595724582672119,
+        -11.315617561340332,
+        102.11677551269531,
+        1.0
+      ],
+      "name": "Cylinder.001"
+    },
+    {
+      "mesh": 2,
+      "name": "Cylinder.001__0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ]
+}

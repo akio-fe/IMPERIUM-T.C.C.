@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
       authTitle.textContent = "Ação desconhecida";
       authMessage.textContent =
         "Ação de autenticação não reconhecida. Redirecionando...";
-      setTimeout(() => (window.location.href = "index.html"), 3000);
+      setTimeout(() => (window.location.href = "../index.php"), 3000);
       break;
   }
 
@@ -73,7 +73,10 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!user) {
         authMessage.textContent =
           "Sessão de usuário não encontrada. Por favor, faça login para continuar.";
-        setTimeout(() => (window.location.href = "../html/cadastro_login.html"), 3000);
+        setTimeout(
+          () => (window.location.href = "../html/cadastro_login.html"),
+          3000
+        );
         return;
       }
 
@@ -86,27 +89,47 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Enviar os dados para o seu servidor de backend
         const idToken = await user.getIdToken();
-        const response = await fetch("../php/checkout.php", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-          body: JSON.stringify(userData),
-        });
+        try {
+          const response = await fetch("https:// 5788570335e4a9ab7d8dc1f7ac9ac907.serveo.net/php/checkout.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${idToken}`,
+            },
+            body: JSON.stringify(userData),
+          });
 
-        const result = await response.json();
+          const contentType = response.headers.get("content-type");
+          const rawBody = await response.text();
 
-        if (result.success) {
+          if (!contentType || !contentType.includes("application/json")) {
+            console.error("Server returned non-JSON response:", rawBody);
+            throw new Error("Unexpected server response format");
+          }
+
+          let result;
+          try {
+            result = JSON.parse(rawBody);
+          } catch (parseError) {
+            console.error("Server returned invalid JSON payload:", rawBody);
+            throw new Error("Invalid JSON in server response");
+          }
+
+          if (result.success) {
+            authMessage.textContent =
+              "E-mail verificado e dados salvos! Redirecionando...";
+            // Apagar o documento temporário do Firestore
+            await deleteDoc(docRef);
+            setTimeout(() => (window.location.href = "../html/cadastro_login.html"), 3000);
+          } else {
+            authMessage.textContent =
+              "E-mail verificado, mas ocorreu um erro ao salvar dados. Entre em contato com o suporte.";
+            console.error("Erro no servidor:", result.message);
+          }
+        } catch (error) {
           authMessage.textContent =
-            "E-mail verificado e dados salvos! Redirecionando...";
-          // Apagar o documento temporário do Firestore
-          await deleteDoc(docRef);
-          setTimeout(() => (window.location.href = "../index.html"), 3000);
-        } else {
-          authMessage.textContent =
-            "E-mail verificado, mas ocorreu um erro ao salvar dados. Entre em contato com o suporte.";
-          console.error("Erro no servidor:", result.message);
+            "E-mail verificado, mas ocorreu um erro ao comunicar com o servidor. Entre em contato com o suporte.";
+          console.error("Erro ao enviar dados para o servidor:", error);
         }
       } else {
         authMessage.textContent =

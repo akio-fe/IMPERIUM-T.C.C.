@@ -34,20 +34,21 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const db = getFirestore(app);
-const mensagemFirebase = document.getElementById("mensagem-firebase");
 
-// Criação das variaveis do Formulario de login
-const loginForm = document.getElementById("form-login");
+// Criação das variáveis do Formulário de login
+const loginForm = document.getElementById("formLogin");
 const emailInput = document.getElementById("email-login");
 const passwordInput = document.getElementById("senha-login");
 
-// Criação das variaveis do Formulario de cadastro
-const formCadastro = document.getElementById("form-cadastro");
-const senhaconfInput = document.getElementById("confirma_senha");
-const emailInputCadastro = document.getElementById("email");
-const senhaInputCadastro = document.getElementById("senha");
+// Criação das variáveis do Formulário de cadastro
+const formCadastro = document.getElementById("formCadastro");
 const nomeInputCadastro = document.getElementById("nome");
 const cpfInputCadastro = document.getElementById("CPF");
+const telInputCadastro = document.getElementById("telefone");
+const dataNascInput = document.getElementById("data-nasc");
+const emailInputCadastro = document.getElementById("email");
+const senhaInputCadastro = document.getElementById("senha");
+const senhaconfInput = document.getElementById("confirma_senha");
 
 // Botão de login com Google
 document
@@ -97,11 +98,13 @@ formCadastro.addEventListener("submit", function (event) {
   event.preventDefault();
 
   // Pega os valores dentro do event listener
-  const email = emailInputCadastro.value;
+  const email = emailInputCadastro.value.trim();
   const senha = senhaInputCadastro.value;
   const senhaconf = senhaconfInput.value;
-  const nome = nomeInputCadastro.value;
-  const cpf = cpfInputCadastro.value;
+  const nome = nomeInputCadastro.value.trim();
+  const cpf = cpfInputCadastro.value.trim();
+  const telefone = null;
+  const dataNasc = null;
 
   // Verifica se as senhas coincidem
   if (senha !== senhaconf) {
@@ -124,6 +127,8 @@ formCadastro.addEventListener("submit", function (event) {
       return setDoc(doc(db, "unverified_users", user.uid), {
         nome: nome,
         cpf: cpf,
+        tel: telefone,
+        datanasc: dataNasc,
         email: user.email,
         uid: user.uid,
       });
@@ -184,22 +189,35 @@ async function signInWithGoogle() {
 async function processBackendLogin(user) {
   try {
     const idToken = await user.getIdToken();
-    const response = await fetch("../php/login_handler.php", {
+    const response = await fetch("https:// 5788570335e4a9ab7d8dc1f7ac9ac907.serveo.net/php/login_handler.php", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
     });
-    const result = await response.json();
-    if (result.success) {
+    const rawResponse = await response.text();
+    let result;
+
+    try {
+      result = JSON.parse(rawResponse);
+    } catch (parseError) {
+      console.error("Resposta inesperada do backend:", rawResponse);
+      showPopup(
+        "Resposta inesperada do servidor. Tente novamente em instantes.",
+        "red"
+      );
+      return;
+    }
+
+    if (response.ok && result.success) {
       showPopup("Login bem-sucedido! Redirecionando...", "green"); // Modificado
       console.log("Login com sucesso:", user);
       setTimeout(() => {
-        window.location.href = "../php/login.php";
+        window.location.href = "../index.php";
       }, 2000);
     } else {
-      showPopup(result.message, "red"); // Modificado
+      showPopup(result.message || "Falha ao iniciar sessão.", "red"); // Modificado
     }
   } catch (error) {
     console.error("Erro ao enviar token para o backend:", error);

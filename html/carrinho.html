@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Carrinho</title>
+  <link rel="icon" href="../img/carrinhoicone.ico">
+  <link rel="stylesheet" href="../css/carrinho.css">
+</head>
+
+<body>
+
+  <header>
+    <div class="linkLogin">
+      <a href="cadastro_login.html">FAÇA LOGIN / CADASTRE-SE</a>
+    </div>
+
+    <nav class="main-nav">
+      <a href="../index.php" class="active">Home</a>
+      <a href="../php/PRODUTOS.php?filtro=todos">Todos</a>
+      <a href="../php/PRODUTOS.php?filtro=camisas">Camisas</a>
+      <a href="../php/PRODUTOS.php?filtro=calcas">Calças</a>
+      <a href="../php/PRODUTOS.php?filtro=calcados">Calçados</a>
+      <a href="../php/PRODUTOS.php?filtro=acessorios">Acessórios</a>
+      <a href="../php/PRODUTOS.php?filtro=contato">Contato</a>
+    </nav>
+
+    <a class="logo-link" href="../index.php"><img src="../img/aguia.png" alt="Logo" class="logo"></a>
+  </header>
+
+  <div class="wrap">
+    <!-- TELA DO CARRINHO -->
+    <div id="tela-carrinho" class="carrinho-container">
+      <h2>Seu Carrinho</h2>
+      <div id="lista-carrinho"></div>
+
+      <div class="total-area">
+        <p>Subtotal: R$ <span id="subtotal">0,00</span></p>
+        <p>Frete: R$ <span id="frete-valor">0,00</span></p>
+        <h3>Total: R$ <span id="total">0,00</span></h3>
+      </div>
+
+      <div class="frete">
+        <label style="font-weight:700;color:var(--accent)">Consulte o frete</label>
+        <div class="cep-row">
+          <input id="input-cep" type="text" placeholder="Digite o CEP (somente números)">
+          <button id="btn-cep">OK</button>
+        </div>
+
+        <input id="input-numero" type="text" placeholder="Número (obrigatório)">
+        <input id="input-complemento" type="text" placeholder="Complemento (opcional)">
+
+        <div id="resultado-frete" class="resultado-frete"></div>
+        <div id="mapa-frete" class="mapa"></div>
+
+        <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank"
+          style="color:var(--accent)">Não sei meu CEP</a>
+      </div>
+
+      <button id="btn-finalizar" class="finalizar" disabled>Finalizar compra</button>
+    </div>
+
+    <!-- TELA PIX (aparece depois de Finalizar) -->
+    <div id="tela-pix">
+      <h2>Pague via PIX</h2>
+      <!-- imagem do QR: troque PIX.png pela sua imagem se tiver; se não houver, será mostrado o placeholder branco -->
+      <img id="qr-pix" src="/img/qrcode.png" alt="QR PIX">
+      <p class="pix-info">Valor final: R$ <strong id="pix-total">0,00</strong></p>
+
+      <label style="display:block;margin-top:10px;color:#ccc">Copia e cola PIX (use este código se preferir)</label>
+      <textarea id="copia-cola" readonly></textarea>
+
+      <div style="margin-top:12px">
+        <button id="btn-japaguei">Já paguei</button>
+      </div>
+
+      <p id="msg-sucesso" class="sucesso"></p>
+    </div>
+  </div>
+
+  <script src="../js/carrinho.js"></script>
+
+
+  <script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.11/jquery.mask.min.js"></script>
+  <script src="../js/form-mask.js"></script>
+</body>
+
+</html>

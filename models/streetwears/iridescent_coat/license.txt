@@ -1,0 +1,11 @@
+Model Information:
+* title:	Iridescent Coat
+* source:	https://sketchfab.com/3d-models/iridescent-coat-4d11929dbe7d4f3c8abb2652a55aef65
+* author:	dejan31 (https://sketchfab.com/dejan31)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Iridescent Coat" (https://sketchfab.com/3d-models/iridescent-coat-4d11929dbe7d4f3c8abb2652a55aef65) by dejan31 (https://sketchfab.com/dejan31) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

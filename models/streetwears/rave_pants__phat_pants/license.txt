@@ -1,0 +1,11 @@
+Model Information:
+* title:	Rave Pants / Phat Pants
+* source:	https://sketchfab.com/3d-models/rave-pants-phat-pants-3180d17274e44a4aaf624239562a484c
+* author:	voloskyscape (https://sketchfab.com/voloskyscape)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Rave Pants / Phat Pants" (https://sketchfab.com/3d-models/rave-pants-phat-pants-3180d17274e44a4aaf624239562a484c) by voloskyscape (https://sketchfab.com/voloskyscape) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

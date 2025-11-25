@@ -1,9 +1,9 @@
 <?php
 // php/login_handler.php
 
-// Add these lines for debugging. Remove them in production!
+// Mantém erros no log sem quebrar a resposta JSON
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 session_start();
 
@@ -19,17 +19,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Corrected path for vendor/autoload.php
 require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/conn.php';
 
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Exception\Auth\ExpiredIdToken;
 use Kreait\Firebase\Exception\Auth\RevokedIdToken;
 use Kreait\Firebase\Exception\Auth\InvalidToken;
-use \InvalidArgumentException;
+use Kreait\Firebase\Exception\Auth\InvalidArgumentException;
 
-// Corrected path for your service account JSON file
-$factory = (new Factory)
-    ->withServiceAccount(__DIR__ . '/../imperium-0001-firebase-adminsdk-fbsvc-ffc86182cf.json');
-$auth = $factory->createAuth();
+// Corrige caminho do arquivo de credenciais do Firebase
+$serviceAccountPath ='../../imperium-0001-firebase-adminsdk-fbsvc-ffc86182cf.json';
+
+if (!file_exists($serviceAccountPath)) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Arquivo de credenciais do Firebase não foi encontrado no servidor.'
+    ]);
+    exit;
+}
+
+try {
+    $factory = (new Factory)->withServiceAccount($serviceAccountPath);
+    $auth = $factory->createAuth();
+} catch (\Throwable $e) {
+    error_log('Falha ao inicializar Firebase Auth: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Erro ao inicializar autenticação do Firebase no servidor.'
+    ]);
+    exit;
+}
 
 $headers = getallheaders();
 $idToken = null;
@@ -56,6 +77,43 @@ try {
     $_SESSION['firebase_uid'] = $uid;
     $_SESSION['logged_in'] = true;
     $_SESSION['email'] = $verifiedIdToken->claims()->get('email');
+
+    // 3. adiciona outras informações na sessão vindo do banco de dados
+    $sql = "SELECT UsuNome, UsuCpf, UsuTel, UsuDataNasc, UsuFuncao FROM usuario WHERE UsuEmail = ?";
+    $stmt = $conn->prepare($sql);
+
+    if (!$stmt) {
+        error_log('Falha ao preparar statement: ' . $conn->error);
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Erro ao preparar consulta de usuário.'
+        ]);
+        exit;
+    }
+
+    $email = $_SESSION['email'];
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $stmt->bind_result($nome, $cpf, $telefone, $dataNasc, $funcao);
+
+    if ($stmt->fetch()) {
+        $_SESSION['user_nome'] = $nome;
+        $_SESSION['user_cpf'] = $cpf;
+        $_SESSION['user_tel'] = $telefone;
+        $_SESSION['user_data_nasc'] = $dataNasc;
+        $_SESSION['user_funcao'] = $funcao;
+    } else {
+        http_response_code(404);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Usuário não encontrado no banco de dados.'
+        ]);
+        $stmt->close();
+        exit;
+    }
+
+    $stmt->close();
 
     echo json_encode([
         'success' => true,

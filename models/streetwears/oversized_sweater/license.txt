@@ -1,0 +1,11 @@
+Model Information:
+* title:	Oversized Sweater
+* source:	https://sketchfab.com/3d-models/oversized-sweater-1a029999a9aa40db97fd651118a4db16
+* author:	dejan31 (https://sketchfab.com/dejan31)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Oversized Sweater" (https://sketchfab.com/3d-models/oversized-sweater-1a029999a9aa40db97fd651118a4db16) by dejan31 (https://sketchfab.com/dejan31) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

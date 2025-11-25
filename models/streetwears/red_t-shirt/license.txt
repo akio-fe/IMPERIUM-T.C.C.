@@ -1,0 +1,11 @@
+Model Information:
+* title:	red t-Shirt
+* source:	https://sketchfab.com/3d-models/red-t-shirt-1ef69e8002874d2b95f81e8cc2180ef8
+* author:	Sergei (https://sketchfab.com/Sergogopowerrangers)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "red t-Shirt" (https://sketchfab.com/3d-models/red-t-shirt-1ef69e8002874d2b95f81e8cc2180ef8) by Sergei (https://sketchfab.com/Sergogopowerrangers) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
