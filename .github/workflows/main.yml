@@ -1,0 +1,38 @@
+name: Deploy PHP App
+
+on:
+  push:
+    branches:
+      - test # ou a branch que você usa para deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4' # Use a versão do PHP do seu projeto
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Deploy para o servidor
+        # Este é um exemplo usando scp. Adapte para o seu método de deploy (FTP, rsync, etc.)
+        uses: appleboy/scp-action@master
+        env:
+          # AQUI ESTÁ A MÁGICA!
+          # Esta seção define a variável de ambiente no container do Actions
+          # que será usada pelo seu script PHP.
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.IMPERIUM_FIREBASE }}
+        with:
+          host: ${{ secrets.HOST_SERVER }}
+          username: ${{ secrets.HOST_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.HOST_PORT }}
+          source: "./*"
+          target: "/path/to/your/app/on/server"
+          # Adicione outros scripts ou comandos de deploy aqui
