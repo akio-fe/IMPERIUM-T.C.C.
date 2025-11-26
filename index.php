@@ -37,7 +37,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
         </nav>
 
         <div class="icons">
-            <a href="html/perfil.html"><img src="img/perfilzin.png" alt="Perfil"></a>
+            <a href="php/perfil.php"><img src="img/perfilzin.png" alt="Perfil"></a>
         </div>
     </header>';
 }
@@ -59,6 +59,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     <!-- Links CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/body.css">
+    <link rel="stylesheet" href="css/header.css">
 
 </head>
 

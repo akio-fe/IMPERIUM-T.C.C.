@@ -85,7 +85,7 @@ $produtoJson = $produtoPayload ? htmlspecialchars(json_encode($produtoPayload, J
     <div class="icons">
       <img src="../img/pesquisar.png" alt="Pesquisar" class="pesquisar">
       <a href="../html/carrinho.html"><img src="../img/carrin.png" alt="Carrinho"></a>
-      <a href="../html/perfil.html"><img src="../img/perfilzin.png" alt="Perfil"></a>
+      <a href="../php/perfil.php"><img src="../img/perfilzin.png" alt="Perfil"></a>
     </div>
   </header>
   <main>

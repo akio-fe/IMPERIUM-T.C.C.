@@ -25,17 +25,17 @@ $categoriaSlugMap = [
 ];
 
 $navItems = [
-    'todos' => 'Todos',
-    'camisas' => 'Camisas',
-    'calcas' => 'Calças',
-    'calcados' => 'Calçados',
-    'acessorios' => 'Acessórios',
+  'todos' => 'Todos',
+  'camisas' => 'Camisas',
+  'calcas' => 'Calças',
+  'calcados' => 'Calçados',
+  'acessorios' => 'Acessórios',
 ];
 
 $navLinksHtml = "<a href='../index.php'>Home</a>";
 foreach ($navItems as $slug => $label) {
-    $activeClass = $filtro === $slug ? 'active' : '';
-    $navLinksHtml .= "<a href='PRODUTOS.php?filtro={$slug}' data-tipo='{$slug}' class='{$activeClass}'>{$label}</a>";
+  $activeClass = $filtro === $slug ? 'active' : '';
+  $navLinksHtml .= "<a href='PRODUTOS.php?filtro={$slug}' data-tipo='{$slug}' class='{$activeClass}'>{$label}</a>";
 }
 
 $produtos = [];
@@ -69,7 +69,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     <nav>{$navLinksHtml}</nav>
     <div class='icons'>
       <a href='../html/carrinho.html'><img src='../img/carrin.png' alt='Carrinho'></a>
-      <a href='../html/perfil.html'><img src='../img/perfilzin.png' alt='Perfil'></a>
+      <a href='../php/perfil.php'><img src='../img/perfilzin.png' alt='Perfil'></a>
     </div>
   </header>";
 }
@@ -78,18 +78,21 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Imperium</title>
-<link rel="icon" href="/img/icone.ico">
-<link rel="stylesheet" href="../css/styleProdutos.css">
-<link rel="stylesheet" href="../css/body.css">
-  
+  <link rel="icon" href="/img/icone.ico">
+  <link rel="stylesheet" href="../css/styleProdutos.css">
+  <link rel="stylesheet" href="../css/body.css">
+  <link rel="stylesheet" href="../css/header.css">
+
 </head>
+
 <body>
 
-  <?= $header ?>  
+  <?= $header ?>
 
   <!-- FILTROS -->
   <section class="filtros">
@@ -114,7 +117,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
         $imgProduto = htmlspecialchars($produto['RoupaImgUrl'], ENT_QUOTES, 'UTF-8');
         $slugTipo = htmlspecialchars($produto['slug'], ENT_QUOTES, 'UTF-8');
         $precoFormatado = number_format((float) $produto['RoupaValor'], 2, ',', '.');
-        ?>
+      ?>
         <div class="produto" data-tipo="<?= $slugTipo ?>">
           <img src="../<?= $imgProduto ?>" alt="<?= $nomeProduto ?>" />
           <h3><?= $nomeProduto ?></h3>
@@ -129,4 +132,5 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
   <script type="module" src="../js/filtro.js"></script>
 </body>
+
 </html>

@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Enviar os dados para o seu servidor de backend
         const idToken = await user.getIdToken();
         try {
-          const response = await fetch("https:// 5788570335e4a9ab7d8dc1f7ac9ac907.serveo.net/php/checkout.php", {
+          const response = await fetch("../php/checkout.php", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
