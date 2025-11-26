@@ -1,5 +1,136 @@
-const FAVORITOS_KEY = "favoritos";
 const CARRINHO_KEY = "carrinho";
+const FAVORITOS_API_URL = "../php/favoritos_api.php";
+const LOGIN_POPUP_ID = "login-required-popup";
+
+const ensureLoginPopup = (() => {
+  let created = false;
+  return () => {
+    if (created) {
+      return document.getElementById(LOGIN_POPUP_ID);
+    }
+    const style = document.createElement("style");
+    style.textContent = `
+      #${LOGIN_POPUP_ID} {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+      }
+      #${LOGIN_POPUP_ID}.hidden { display: none; }
+      #${LOGIN_POPUP_ID} .login-popup__card {
+        background: #111;
+        color: #f5f5f5;
+        border: 1px solid #333;
+        border-radius: 12px;
+        max-width: 420px;
+        width: 100%;
+        padding: 32px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        font-family: "Inter", sans-serif;
+      }
+      body.light #${LOGIN_POPUP_ID} .login-popup__card {
+        background: #fff;
+        color: #111;
+        border-color: #ddd;
+      }
+      #${LOGIN_POPUP_ID} .login-popup__title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+      #${LOGIN_POPUP_ID} .login-popup__text {
+        font-size: 0.95rem;
+        line-height: 1.4;
+        margin-bottom: 24px;
+      }
+      #${LOGIN_POPUP_ID} .login-popup__actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      #${LOGIN_POPUP_ID} .login-popup__actions button,
+      #${LOGIN_POPUP_ID} .login-popup__actions a {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 18px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      #${LOGIN_POPUP_ID} .login-popup__actions .login-popup__cancel {
+        background: transparent;
+        color: #d4af37;
+        border: 1px solid #d4af37;
+      }
+      body.light #${LOGIN_POPUP_ID} .login-popup__actions .login-popup__cancel {
+        color: #111;
+        border-color: #111;
+      }
+      #${LOGIN_POPUP_ID} .login-popup__actions .login-popup__confirm {
+        background: #d4af37;
+        color: #111;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 140px;
+      }
+      #${LOGIN_POPUP_ID} .login-popup__close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: transparent;
+        border: 0;
+        color: inherit;
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+    `;
+    document.head.appendChild(style);
+
+    const overlay = document.createElement("div");
+    overlay.id = LOGIN_POPUP_ID;
+    overlay.className = "hidden";
+    overlay.innerHTML = `
+      <div class="login-popup__card">
+        <button type="button" class="login-popup__close" aria-label="Fechar">×</button>
+        <h2 class="login-popup__title">Faça login para favoritar</h2>
+        <p class="login-popup__text">
+          Você precisa estar logado para salvar itens nos favoritos.
+        </p>
+        <div class="login-popup__actions">
+          <button type="button" class="login-popup__cancel">Agora não</button>
+          <a class="login-popup__confirm" href="../html/cadastro_login.html">Fazer login</a>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) {
+        overlay.classList.add("hidden");
+      }
+    });
+    overlay.querySelector(".login-popup__close").addEventListener("click", () => {
+      overlay.classList.add("hidden");
+    });
+    overlay.querySelector(".login-popup__cancel").addEventListener("click", () => {
+      overlay.classList.add("hidden");
+    });
+
+    created = true;
+    return overlay;
+  };
+})();
+
+const showLoginPopup = () => {
+  const overlay = ensureLoginPopup();
+  overlay.classList.remove("hidden");
+};
 
 const parseProdutoData = () => {
   const container = document.querySelector(".container-produto");
@@ -64,6 +195,34 @@ const readStorage = (key) => {
 
 const writeStorage = (key, value) => {
   localStorage.setItem(key, JSON.stringify(value));
+};
+
+const parseApiResponse = async (response) => {
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch (_) {
+    payload = null;
+  }
+  if (!response.ok) {
+    const message = payload?.message || "Não foi possível atualizar favoritos.";
+    const error = new Error(message);
+    error.status = response.status;
+    throw error;
+  }
+  return payload;
+};
+
+const updateFavorite = async (produtoId, shouldFavorite) => {
+  const response = await fetch(FAVORITOS_API_URL, {
+    method: shouldFavorite ? "POST" : "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ produtoId }),
+    credentials: "same-origin",
+  });
+  return parseApiResponse(response);
 };
 
 const viewerStabilityGuard = (() => {
@@ -134,7 +293,7 @@ const isWebGLContextInitFailure = (error) => {
 };
 
 const initFavorito = (produto) => {
-  if (!produto) {
+  if (!produto || !produto.id) {
     return;
   }
   const toggle = document.getElementById("btn-favoritar");
@@ -142,35 +301,48 @@ const initFavorito = (produto) => {
     return;
   }
 
-  const isFavorito = () =>
-    readStorage(FAVORITOS_KEY).some((item) => item.id === produto.id);
-  const syncToggle = () => {
-    toggle.checked = isFavorito();
+  const requiresLogin = !produto.isAuthenticated;
+  const setToggle = (value) => {
+    toggle.checked = Boolean(value);
   };
 
-  toggle.addEventListener("change", () => {
-    const favoritos = readStorage(FAVORITOS_KEY).filter(
-      (item) => item.id !== produto.id
-    );
-    if (toggle.checked) {
-      favoritos.push({
-        id: produto.id,
-        nome: produto.nome,
-        imagem: produto.imagem,
-        preco: produto.preco,
-        link: produto.link,
-      });
-    }
-    writeStorage(FAVORITOS_KEY, favoritos);
-  });
+  setToggle(produto.favorito);
 
-  window.addEventListener("storage", (event) => {
-    if (event.key === FAVORITOS_KEY) {
-      syncToggle();
+  if (requiresLogin) {
+    toggle.addEventListener("change", () => {
+      setToggle(false);
+      showLoginPopup();
+    });
+    return;
+  }
+
+  toggle.addEventListener("change", async () => {
+    if (toggle.dataset.loading === "1") {
+      return;
+    }
+    toggle.dataset.loading = "1";
+    toggle.disabled = true;
+    try {
+      await updateFavorite(produto.id, toggle.checked);
+      produto.favorito = toggle.checked;
+      exibirToast(
+        toggle.checked
+          ? "Produto adicionado aos favoritos."
+          : "Produto removido dos favoritos."
+      );
+    } catch (error) {
+      console.error("Favoritos", error);
+      setToggle(!toggle.checked);
+      const message = error?.message || "Não foi possível atualizar favoritos.";
+      exibirToast(message);
+      if (error?.status === 401) {
+        showLoginPopup();
+      }
+    } finally {
+      toggle.disabled = false;
+      delete toggle.dataset.loading;
     }
   });
-
-  syncToggle();
 };
 
 const exibirToast = (mensagem) => {

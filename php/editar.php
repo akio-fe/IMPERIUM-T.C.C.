@@ -29,6 +29,15 @@ function formatTelefone(string $value): string
 	return $value;
 }
 
+function formatDateDisplay(?string $value): string
+{
+	if (!$value) {
+		return '';
+	}
+	$date = DateTime::createFromFormat('Y-m-d', $value);
+	return $date ? $date->format('d/m/Y') : $value;
+}
+
 $errors = [];
 $successMessage = '';
 
@@ -36,7 +45,9 @@ $nome = $_SESSION['user_nome'] ?? '';
 $email = $_SESSION['email'] ?? '';
 $cpf = $_SESSION['user_cpf'] ?? '';
 $telefone = $_SESSION['user_tel'] ?? '';
-$dataNasc = $_SESSION['user_data_nasc'] ?? '';
+$dataNascDb = $_SESSION['user_data_nasc'] ?? '';
+$dataNascDisplay = formatDateDisplay($dataNascDb);
+$dataNascFieldValue = $dataNascDisplay;
 
 $currentEmail = $email;
 
@@ -45,7 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$email = trim($_POST['email'] ?? '');
 	$cpf = preg_replace('/\D+/', '', $_POST['cpf'] ?? '');
 	$telefone = preg_replace('/\D+/', '', $_POST['telefone'] ?? '');
-	$dataNasc = trim($_POST['data_nasc'] ?? '');
+	$dataNascInput = trim($_POST['data_nasc'] ?? '');
+	$dataNascFieldValue = $dataNascInput;
 
 	if ($nome === '') {
 		$errors[] = 'Informe seu nome completo.';
@@ -63,9 +75,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$errors[] = 'Informe um telefone válido com DDD.';
 	}
 
-	$dataValida = DateTime::createFromFormat('Y-m-d', $dataNasc);
+	$dataValida = null;
+	if ($dataNascInput !== '') {
+		$dataValida = DateTime::createFromFormat('Y-m-d', $dataNascInput);
+		$isIso = $dataValida && $dataValida->format('Y-m-d') === $dataNascInput;
+		if (!$isIso) {
+			$dataValida = DateTime::createFromFormat('d/m/Y', $dataNascInput);
+			$isIso = $dataValida && $dataValida->format('d/m/Y') === $dataNascInput;
+		}
+	}
+
 	if (!$dataValida) {
 		$errors[] = 'Informe uma data de nascimento válida.';
+		$dataNascFieldValue = '';
+		$dataNascDisplay = '';
+	} else {
+		$dataNascDb = $dataValida->format('Y-m-d');
+		$dataNascDisplay = formatDateDisplay($dataNascDb);
+		$dataNascFieldValue = $dataNascDisplay;
 	}
 
 	if (!$errors) {
@@ -73,15 +100,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$stmt = $conn->prepare($updateSql);
 
 		if ($stmt) {
-			$stmt->bind_param('ssssss', $nome, $email, $cpf, $telefone, $dataNasc, $currentEmail);
+			$stmt->bind_param('ssssss', $nome, $email, $cpf, $telefone, $dataNascDb, $currentEmail);
 
 			if ($stmt->execute()) {
 				$_SESSION['user_nome'] = $nome;
 				$_SESSION['email'] = $email;
 				$_SESSION['user_cpf'] = $cpf;
 				$_SESSION['user_tel'] = $telefone;
-				$_SESSION['user_data_nasc'] = $dataNasc;
+				$_SESSION['user_data_nasc'] = $dataNascDb;
 				$currentEmail = $email;
+				$dataNascDisplay = formatDateDisplay($dataNascDb);
+				$dataNascFieldValue = $dataNascDisplay;
 				$successMessage = 'Dados atualizados com sucesso!';
 			} else {
 				$errors[] = 'Não foi possível atualizar seus dados. Tente novamente.';
@@ -108,6 +137,7 @@ $telefoneDisplay = formatTelefone($telefone);
 	<link rel="icon" href="../img/icone.ico">
 	<link rel="stylesheet" href="../css/header.css">
 	<link rel="stylesheet" href="../css/perfil.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 	<style>
 		.card form {
 			display: flex;
@@ -203,10 +233,10 @@ $telefoneDisplay = formatTelefone($telefone);
 		</div>
 		<nav>
 			<a href="perfil.php" class="active">Dados pessoais</a>
-			<a href="../html/enderecos.html">Endereços</a>
+			<a href="../html/enderecos.php">Endereços</a>
 			<a href="../html/pedidos.html">Pedidos</a>
 			<a href="../html/cartoes.html">Cartões</a>
-			<a href="../html/favoritos.html">Favoritos</a>
+			<a href="favoritos.php">Favoritos</a>
 			<a href="sair.php">Sair</a>
 		</nav>
 	</div>
@@ -251,7 +281,7 @@ $telefoneDisplay = formatTelefone($telefone);
 						</div>
 						<div class="form-group">
 							<label for="data_nasc">Data de nascimento</label>
-							<input type="date" id="data_nasc" name="data_nasc" value="<?php echo htmlspecialchars($dataNasc, ENT_QUOTES, 'UTF-8'); ?>" required>
+							<input type="text" id="data_nasc" name="data_nasc" maxlength="10" inputmode="numeric" placeholder="dd/mm/aaaa" value="<?php echo htmlspecialchars($dataNascFieldValue, ENT_QUOTES, 'UTF-8'); ?>" autocomplete="off" required>
 						</div>
 					</div>
 
@@ -266,6 +296,16 @@ $telefoneDisplay = formatTelefone($telefone);
 	<script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.11/jquery.mask.min.js"></script>
 	<script src="../js/form-mask.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+	<script>
+		flatpickr('#data_nasc', {
+			dateFormat: 'd/m/Y',
+			allowInput: true,
+			locale: flatpickr.l10ns.pt,
+			defaultDate: <?php echo $dataNascDisplay ? json_encode($dataNascDisplay) : 'null'; ?>,
+		});
+	</script>
 
 </body>
 

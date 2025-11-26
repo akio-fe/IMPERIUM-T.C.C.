@@ -1,9 +1,39 @@
 <?php
+session_start();
 require_once 'conn.php';
+
+function getSessionUserId(mysqli $conn): ?int
+{
+  $email = isset($_SESSION['email']) ? trim((string) $_SESSION['email']) : '';
+  if ($email === '') {
+    return null;
+  }
+
+  $stmt = $conn->prepare('SELECT UsuId FROM usuario WHERE UsuEmail = ? LIMIT 1');
+  if (!$stmt) {
+    return null;
+  }
+
+  $stmt->bind_param('s', $email);
+  $stmt->execute();
+  $stmt->bind_result($userId);
+  $foundId = $stmt->fetch() ? (int) $userId : null;
+  $stmt->close();
+
+  return $foundId;
+}
 
 $produtoId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $erroProduto = '';
 $produto = null;
+$userId = null;
+$isAuthenticated = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
+if ($isAuthenticated) {
+  $userId = getSessionUserId($conn);
+  if ($userId === null) {
+    $isAuthenticated = false;
+  }
+}
 
 if (!$produtoId) {
     $erroProduto = 'Produto inválido ou não informado.';
@@ -26,6 +56,18 @@ if (!$produtoId) {
         $erroProduto = 'Falha ao preparar a consulta do produto.';
     }
 }
+
+    $isFavorito = false;
+    if ($produto && $isAuthenticated && $userId !== null) {
+      $stmtFav = $conn->prepare('SELECT 1 FROM favorito WHERE RoupaId = ? AND UsuId = ? LIMIT 1');
+      if ($stmtFav) {
+        $stmtFav->bind_param('ii', $produto['RoupaId'], $userId);
+        $stmtFav->execute();
+        $stmtFav->store_result();
+        $isFavorito = $stmtFav->num_rows > 0;
+        $stmtFav->close();
+      }
+    }
 
 $nomeProduto = $produto ? htmlspecialchars($produto['RoupaNome'], ENT_QUOTES, 'UTF-8') : '';
 $imgProduto = $produto ? '/' . ltrim((string) $produto['RoupaImgUrl'], '/') : '';
@@ -59,6 +101,8 @@ $produtoPayload = $produto ? [
   'precoFormatado' => $precoFormatado,
   'link' => 'produto.php?id=' . (int) $produto['RoupaId'],
   'modelPath' => $modelPath ?: null,
+  'favorito' => $isFavorito,
+  'isAuthenticated' => $isAuthenticated,
 ] : null;
 
 $produtoJson = $produtoPayload ? htmlspecialchars(json_encode($produtoPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8') : '';
@@ -113,7 +157,7 @@ $produtoJson = $produtoPayload ? htmlspecialchars(json_encode($produtoPayload, J
           </button>
 
           <label class="toggle-favorito" aria-label="Favoritar produto">
-            <input type="checkbox" id="btn-favoritar" />
+            <input type="checkbox" id="btn-favoritar" <?= $isFavorito ? 'checked' : '' ?> <?= $isAuthenticated ? '' : 'data-requires-login="1"' ?> />
             <span>❤️</span>
           </label>
         </div>

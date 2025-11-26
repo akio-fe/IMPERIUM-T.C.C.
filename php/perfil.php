@@ -6,6 +6,49 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
   exit();
 }
 
+function sanitizeField($value)
+{
+  return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+}
+
+function formatCpf($cpf)
+{
+  $digits = preg_replace('/\D+/', '', (string)$cpf);
+  if (strlen($digits) === 11) {
+    $formatted = preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $digits);
+    return sanitizeField($formatted);
+  }
+  return sanitizeField($cpf);
+}
+
+function formatDateBr($date)
+{
+  $rawDate = trim((string)$date);
+  if ($rawDate === '') {
+    return '';
+  }
+  try {
+    $dateTime = new DateTime($rawDate);
+    return sanitizeField($dateTime->format('d/m/Y'));
+  } catch (Exception $e) {
+    return sanitizeField($date);
+  }
+}
+
+function formatPhone($phone)
+{
+  $digits = preg_replace('/\D+/', '', (string)$phone);
+  if (strlen($digits) === 11) {
+    $formatted = sprintf('(%s) %s-%s', substr($digits, 0, 2), substr($digits, 2, 5), substr($digits, 7));
+    return sanitizeField($formatted);
+  }
+  if (strlen($digits) === 10) {
+    $formatted = sprintf('(%s) %s-%s', substr($digits, 0, 2), substr($digits, 2, 4), substr($digits, 6));
+    return sanitizeField($formatted);
+  }
+  return sanitizeField($phone);
+}
+
 $filtro = isset($_GET['filtro']) ? $_GET['filtro'] : 'todos';
 $classActive = '';
 $filtrosPermitidos = ['todos', 'calcados', 'calcas', 'blusas', 'camisas', 'conjuntos', 'outros', 'acessorios'];
@@ -100,10 +143,10 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     </div>
     <nav>
       <a href="dados_pessoais.html" class="active">Dados pessoais</a>
-      <a href="../html/enderecos.html">Endereços</a>
+      <a href="enderecos.php">Endereços</a>
       <a href="../html/pedidos.html">Pedidos</a>
       <a href="../html/cartoes.html">Cartões</a>
-      <a href="../html/favoritos.html">Favoritos</a>
+      <a href="favoritos.php">Favoritos</a>
       <a href="sair.php">Sair</a>
     </nav>
   </div>
@@ -115,24 +158,24 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
         <p>
           <strong>Nome</strong>
           <br>
-          <span><?php echo $_SESSION['user_nome']; ?></span>
+          <span><?php echo sanitizeField($_SESSION['user_nome'] ?? ''); ?></span>
         </p>
         <p>
           <strong>Email</strong>
           <br>
-          <span><?php echo $_SESSION['email']; ?></span>
+          <span><?php echo sanitizeField($_SESSION['email'] ?? ''); ?></span>
         </p>
         <p><strong>CPF</strong>
           <br>
-          <span><?php echo $_SESSION['user_cpf']; ?></span>
+          <span><?php echo formatCpf($_SESSION['user_cpf'] ?? ''); ?></span>
         </p>
         <p><strong>Data de nascimento</strong>
           <br>
-          <span><?php echo $_SESSION['user_data_nasc']; ?></span>
+          <span><?php echo formatDateBr($_SESSION['user_data_nasc'] ?? ''); ?></span>
         </p>
         <p><strong>Telefone</strong>
           <br>
-          <span><?php echo $_SESSION['user_tel']; ?></span>
+          <span><?php echo formatPhone($_SESSION['user_tel'] ?? ''); ?></span>
         </p>
         <div class="edit-btn">
           <a href="editar.php">EDITAR</a>
