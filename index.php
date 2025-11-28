@@ -1,49 +1,85 @@
 <?php
 // index.php
 session_start();
+require_once __DIR__ . '/bootstrap/app.php';
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    // O usuário não está logado, redireciona para a página de login
-    $header = '<header>
-        <img src="public/images/aguia.png" alt="">
+$filtro = isset($_GET['filtro']) ? $_GET['filtro'] : 'todos';
+$classActive = '';
+$filtrosPermitidos = ['todos', 'calcados', 'calcas', 'blusas', 'camisas', 'conjuntos', 'outros', 'acessorios'];
 
-        <nav>
-            <a href="#" class="active">Home</a>
-            <a href="php/PRODUTOS.php?filtro=todos">Todos</a>
-            <a href="php/PRODUTOS.php?filtro=camisas">Camisas</a>
-            <a href="php/PRODUTOS.php?filtro=calcas">Calças</a>
-            <a href="php/PRODUTOS.php?filtro=calcados">Calçados</a>
-            <a href="php/PRODUTOS.php?filtro=acessorios">Acessorios</a>
-            <a href="php/PRODUTOS.php?filtro=contato">Contato</a>
-        </nav>
+if (!in_array($filtro, $filtrosPermitidos, true)) {
+    $filtro = 'todos';
+}
+$categoriaSlugMap = [
+    1 => 'calcados',
+    2 => 'calcas',
+    3 => 'blusas',
+    4 => 'camisas',
+    5 => 'conjuntos',
+    6 => 'acessorios',
+];
 
-        <div class="linkLogin">
-            <a href="html/cadastro_login.html"><i class="fa-solid fa-user"></i>FAÇA LOGIN / CADASTRE-SE</a>
-        </div>
-    </header>';
-} else {
-    // Se o usuário está logado, exibe o cabeçalho para usuários logados
-    $header = '<header>
-        <img src="public/images/aguia.png" alt="">
+$navItems = [
+    'todos' => 'Todos',
+    'camisas' => 'Camisas',
+    'calcas' => 'Calças',
+    'calcados' => 'Calçados',
+    'acessorios' => 'Acessórios',
+];
 
-        <nav>
-            <a href="#" class="active">Home</a>
-            <a href="php/PRODUTOS.php?filtro=todos">Todos</a>
-            <a href="php/PRODUTOS.php?filtro=camisas">Camisas</a>
-            <a href="php/PRODUTOS.php?filtro=calcas">Calças</a>
-            <a href="php/PRODUTOS.php?filtro=calcados">Calçados</a>
-            <a href="php/PRODUTOS.php?filtro=acessorios">Acessorios</a>
-            <a href="php/PRODUTOS.php?filtro=contato">Contato</a>
-        </nav>
-
-        <div class="icons">
-            <a href="php/perfil.php"><img src="img/perfilzin.png" alt="Perfil"></a>
-        </div>
-    </header>';
+$navLinksHtml = "<a href='" . url_path('index.php') . "' class='active'>Home</a>";
+foreach ($navItems as $slug => $label) {
+    $shopUrl = url_path('public/pages/shop/index.php') . "?filtro={$slug}";
+    $navLinksHtml .= "<a href='{$shopUrl}' data-tipo='{$slug}'>{$label}</a>";
 }
 
+$produtos = [];
+$erroProdutos = '';
+
+$sql = "SELECT r.RoupaId, r.RoupaNome, r.RoupaModelUrl, r.RoupaImgUrl, r.RoupaValor, r.CatRId, c.CatRTipo, c.CatRSessao\n        FROM roupa r\n        INNER JOIN catroupa c ON c.CatRId = r.CatRId\n        ORDER BY r.CatRId, r.RoupaNome";
+
+if ($resultado = $conn->query($sql)) {
+    while ($linha = $resultado->fetch_assoc()) {
+        $linha['slug'] = $categoriaSlugMap[$linha['CatRId']] ?? 'outros';
+        $produtos[] = $linha;
+    }
+    $resultado->free();
+} else {
+    $erroProdutos = 'Não foi possível carregar os produtos. Tente novamente em instantes.';
+}
+
+$logoSrc = asset_path('img/catalog/aguia.png');
+$cartIcon = asset_path('img/catalog/carrin.png');
+$profileIcon = asset_path('img/catalog/perfilzin.png');
+$loginUrl = url_path('public/pages/auth/cadastro_login.html');
+$cartLink = url_path('public/pages/shop/carrinho.php');
+$profileLink = url_path('public/pages/account/perfil.php');
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    $header = "<header>
+        <div class='linkLogin'>
+            <a href='{$loginUrl}'><i class='fa-solid fa-user'></i>FAÇA LOGIN / CADASTRE-SE</a>
+        </div>
+        <nav>
+            {$navLinksHtml}
+        </nav>
+        <img src='{$logoSrc}' alt='Imperium'>
+    </header>";
+} else {
+    $header = "<header>
+        <div class='acicons'>
+                <a href='{$cartLink}''><img src='{$cartIcon}' alt='Carrinho'></a>
+                <a href='{$profileLink}'><img src='{$profileIcon}' alt='Perfil'></a>
+            </div> 
+        
+        <nav>{$navLinksHtml}</nav>
+
+        <img src='{$logoSrc}' alt='Imperium'>
+                   
+    </header>";
+}
 
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -51,15 +87,16 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMPERIUM</title>
+    <link rel="icon" href="<?= asset_path('img/catalog/icone.ico'); ?>">
 
     <!-- Inserção de ícones -->
     <script src="https://kit.fontawesome.com/bf477ee59c.js" crossorigin="anonymous"></script>
 
 
     <!-- Links CSS -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/body.css">
-    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="<?= asset_path('css/header.css'); ?>">
+    <link rel="stylesheet" href="<?= asset_path('css/style.css'); ?>">
+    <link rel="stylesheet" href="<?= asset_path('css/body.css'); ?>">
 
 </head>
 
@@ -78,7 +115,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
             <div class="list">
 
                 <div class="item">
-                    <img src="public/images/thething.png" alt="">
+                    <img src="<?= asset_path('public/assets/img/ui/thething.png'); ?>" alt="">
 
                     <div class="content">
                         <div class="title">USE IMPERIUM</div>
@@ -90,7 +127,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 </div>
 
                 <div class="item">
-                    <img src="public/images/japanesestreet.png" alt="">
+                    <img src="<?= asset_path('public/assets/img/ui/japanesestreet.png'); ?>" alt="">
 
                     <div class="content">
                         <div class="title">USE IMPERIUM</div>
@@ -102,7 +139,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 </div>
 
                 <div class="item">
-                    <img src="public/images/balaclava.png" alt="">
+                    <img src="<?= asset_path('public/assets/img/ui/balaclava.png'); ?>" alt="">
 
                     <div class="content">
                         <div class="title">USE IMPERIUM</div>
@@ -114,7 +151,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 </div>
 
                 <div class="item">
-                    <img src="public/images/light.png" alt="">
+                    <img src="<?= asset_path('public/assets/img/ui/light.png'); ?>" alt="">
 
                     <div class="content">
                         <div class="title">USE IMPERIUM</div>
@@ -131,16 +168,16 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
             <div class="thumbnail">
 
                 <div class="item">
-                    <img src="public/images/thething.png" alt="">
+                    <img src="<?= asset_path('public/assets/img/ui/thething.png'); ?>" alt="">
                 </div>
                 <div class="item">
-                    <img src="public/images/japanesestreet.png" alt="">
+                    <img src="<?= asset_path('public/assets/img/ui/japanesestreet.png'); ?>" alt="">
                 </div>
                 <div class="item">
-                    <img src="public/images/balaclava.png" alt="">
+                    <img src="<?= asset_path('public/assets/img/ui/balaclava.png'); ?>" alt="">
                 </div>
                 <div class="item">
-                    <img src="public/images/light.png" alt="">
+                    <img src="<?= asset_path('public/assets/img/ui/light.png'); ?>" alt="">
                 </div>
 
             </div>
@@ -158,11 +195,11 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
         <!-- Seção de promoções-->
         <section>
             <div class="sectionEsq">
-                <h2 style="margin-left: 85px;"">PROMOÇÕES</h2>
+                <h2 style="margin-left: 85px;" id="prom">PROMOÇÕES</h2>
                 <i class=" fa-solid fa-money-bills"></i>
             </div>
             <div class="secImgEsq">
-                <img src="public/images/promos.jpg" alt="imagem promocional">
+                <img src="<?= asset_path('public/assets/img/ui/promos.jpg'); ?>" alt="imagem promocional">
             </div>
         </section>
 
@@ -173,7 +210,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 <i class="fa-solid fa-fire"></i>
             </div>
             <div class="secImgDir">
-                <img src="public/images/travis.jpg" alt="imagem promocional">
+                <img src="<?= asset_path('public/assets/img/ui/travis.jpg'); ?>" alt="imagem promocional">
             </div>
         </section>
 
@@ -184,44 +221,29 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 <i class="fa-solid fa-bolt-lightning"></i>
             </div>
             <div class="secImgEsq">
-                <img src="public/images/mahdi.jpg" alt="imagem promocional">
+                <img src="<?= asset_path('public/assets/img/ui/mahdi.jpg'); ?>" alt="imagem promocional">
             </div>
         </section>
 
+        <!-- Seção roupas masculinas -->
+        <section>
+            <div class="sectionDir">
+                <h2 id="masc">MASCULINO</h2>
+                <i class="fa-solid fa-shirt"></i>
+            </div>
+            <div class="secImgDir">
+                <img src="<?= asset_path('public/assets/img/ui/modaMasc.png'); ?>" alt="imagem promocional">
+            </div>
+        </section>
 
-        <!-- sessão de categorias -->
-        <section class="categorias">
-            <h2>CATEGORIAS</h2>
-
-            <div class="coisas">
-
-                <!-- camisas -->
-                <span class="camisa">
-                    <a href="#" class="grid" id="camisa">
-                        <img src="public/images/cams.jpg" alt="imagem da sessão de camisas">
-                    </a>
-                </span>
-
-                <!-- acessórios -->
-                <span class="acess">
-                    <a href="#" class="grid" id="acess">
-                        <img src="public/images/bone.jpg" alt="imagem da sessão de acessórios">
-                    </a>
-                </span>
-
-                <!-- sapatos -->
-                <span class="sapa">
-                    <a href="#" class="grid" id="sapa">
-                        <img src="public/images/ekin.jpg" alt="imagem da sessão de sapatos">
-                    </a>
-                </span>
-
-                <!-- calças -->
-                <span class="calca">
-                    <a href="#" class="grid" id="calca">
-                        <img src="public/images/robot.jpg" alt="imagem da sessão de calças">
-                    </a>
-                </span>
+        <!-- Seção roupas femininas -->
+        <section>
+            <div class="sectionEsq">
+                <h2 id="fem">FEMININO</h2>
+                <i class="fa-solid fa-shirt"></i>   
+            </div>
+            <div class="secImgEsq">
+                <img src="<?= asset_path('public/assets/img/ui/modaFem.png'); ?>" alt="imagem promocional">
             </div>
         </section>
     </main>
@@ -288,29 +310,33 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 </body>
 
-<script src="js/app.js"></script>
+<script src="<?= asset_path('js/app.js'); ?>"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const input = document.querySelector('.search-bar input');
-    const fechar = document.querySelector('.search-bar .fechar');
-    const lupa = document.querySelector('.icons .pesquisar');
-    const icon = document.querySelector('.search-bar .search-icon');
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.querySelector('.search-bar input');
+        const fechar = document.querySelector('.search-bar .fechar');
+        const lupa = document.querySelector('.icons .pesquisar');
+        const icon = document.querySelector('.search-bar .search-icon');
 
-    lupa.addEventListener('click', () => {
-        input.classList.add('mostrar');
-        fechar.style.display = 'inline-block';
-        lupa.style.display = 'none';
-        icon.style.display = 'block';
-    });
+        if (!input || !fechar || !lupa || !icon) {
+            return;
+        }
 
-    fechar.addEventListener('click', () => {
-        input.classList.remove('mostrar');
-        fechar.style.display = 'none';
-        lupa.style.display = 'inline-block';
-        icon.style.display = 'none';
+        lupa.addEventListener('click', () => {
+            input.classList.add('mostrar');
+            fechar.style.display = 'inline-block';
+            lupa.style.display = 'none';
+            icon.style.display = 'block';
+        });
+
+        fechar.addEventListener('click', () => {
+            input.classList.remove('mostrar');
+            fechar.style.display = 'none';
+            lupa.style.display = 'inline-block';
+            icon.style.display = 'none';
+        });
     });
-});
 </script>
 
 </html>

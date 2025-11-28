@@ -1,0 +1,11 @@
+Model Information:
+* title:	Shirt
+* source:	https://sketchfab.com/3d-models/shirt-0a089aab28fb40a6b91430a1ff9683cd
+* author:	Shushilda (https://sketchfab.com/shushilda)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Shirt" (https://sketchfab.com/3d-models/shirt-0a089aab28fb40a6b91430a1ff9683cd) by Shushilda (https://sketchfab.com/shushilda) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

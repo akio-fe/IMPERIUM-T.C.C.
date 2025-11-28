@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE-edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Cadastro IMPERIUM</title>
+
+    <link href='https://cdn.boxicons.com/3.0.5/fonts/basic/boxicons.min.css' rel='stylesheet'>
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../assets/css/loginstyle.css">
+    <link rel="stylesheet" href="../../assets/css/popups.css">
+
+    <script src="../../assets/js/script.js" defer></script>
+</head>
+
+<body>
+
+    <a href="../../../index.php">
+        <button class="corner-btn">
+            <img src="../../assets/img/ui/STICKEN.png" alt="home">
+        </button>
+    </a>
+
+    <div class="container">
+        <div class="form-box login">
+            <form id="formLogin" autocomplete="on">
+                <h1>Login</h1>
+                <div class="input-box">
+                    <input type="email" id="email-login" name="email" placeholder="Email de login" required>
+                    <i class='bx  bx-user'></i>
+                </div>
+
+                <div class="input-box">
+                    <input type="password" id="senha-login" name="senha" placeholder="Senha da conta" required>
+                    <i class='bx  bx-lock'></i>
+                </div>
+
+                <div class="forgot-link">
+                    <a href="#">Esqueceu a senha?</a>
+                </div>
+                <button type="submit" class="btn">Login</button>
+                <p>Ou faça login com o Google</p>
+                <button type="button" id="googleButton" class="btn google-btn">Entrar com Google</button>
+            </form>
+        </div>
+
+        <div class="form-box register">
+            <form id="formCadastro" autocomplete="on">
+                <h1 class="tittleSign">Registre-se</h1>
+                <div class="input-box reg">
+                    <input type="text" id="nome" name="nome" placeholder="Meu nome completo" required>
+                    <i class='bx  bx-user'></i>
+                </div>
+                
+                <div class="input-box reg">
+                    <input type="email" id="email" name="email" placeholder="meuemail@gmail.com" required>
+                    <i class='bx  bx-envelope-alt'></i>
+                </div>
+
+                <div class="input-box reg">
+                    <input type="text" id="CPF" name="cpf" placeholder="xxx.xxx.xxx-00" required>
+                    <i class='bx  bx-user-id-card'></i>
+                </div>
+
+                <div class="input-box reg">
+                    <input type="password" id="senha" name="senha" placeholder="Senha" required>
+                    <i class='bx  bx-lock'></i>
+                </div>
+
+                <div class="input-box reg">
+                    <input type="password" id="confirma_senha" name="confirma_senha" placeholder="Confirme sua senha" required>
+                    <i class='bx  bx-lock'></i>
+                </div>
+
+                <button type="submit" class="btn">Registre-se</button>
+                <p>Ou faça o registro pelo Google</p>
+                <button type="button" id="googleButton2" class="btn google-btn">Criar conta com Google</button>
+            </form>
+        </div>
+
+        <div class="toggle-box">
+            <div class="toggle-panel toggle-left">
+                <h1>Olá de novo!</h1>
+                <p>Não tem uma conta?</p>
+                <button class="btn register-btn">Registre-se</button>
+            </div>
+            <div class="toggle-panel toggle-right">
+                <h1>Seja bem-vindo!</h1>
+                <p>Já tem uma conta?</p>
+                <button class="btn login-btn">Fazer Login</button>
+            </div>
+        </div>
+
+            <!-- Popup de mensagem -->
+            <div id="popup-overlay" class="hidden">
+                <div id="popup-card">
+                    <span id="popup-close">&times;</span>
+                    <p id="popup-message"></p>
+                </div>
+            </div>
+
+            <!-- JQuery e JS -->
+            <script src="../../assets/js/login.js"></script>
+            <script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.11/jquery.mask.min.js"></script>
+            <script src="../../assets/js/form-mask.js"></script>
+            <script src="../../assets/js/popups.js"></script>
+            <script type="module" src="../../assets/js/cadastro_login.js"></script>
+</body>
+
+</html>

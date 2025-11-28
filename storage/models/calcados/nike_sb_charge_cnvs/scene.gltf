@@ -1,0 +1,465 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.05560847744345665,
+        0.12428291141986847,
+        0.1697578877210617
+      ],
+      "min": [
+        -0.05020585656166077,
+        0.0010867861565202475,
+        -0.11409065127372742
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 786384,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.9999951124191284,
+        0.999962568283081,
+        0.9999896883964539
+      ],
+      "min": [
+        -0.9999880790710449,
+        -0.999997079372406,
+        -0.9999079704284668
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.9887740015983582,
+        0.9978780150413513
+      ],
+      "min": [
+        0.0054419999942183495,
+        0.004031999967992306
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 334092,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 1572768,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.05333472415804863,
+        0.09805881977081299,
+        0.17161820828914642
+      ],
+      "min": [
+        -0.05136054754257202,
+        0.002681409940123558,
+        -0.11600137501955032
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 2359152,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.9999992251396179,
+        0.9999998807907104,
+        0.9999665021896362
+      ],
+      "min": [
+        -0.9999994039535522,
+        -0.9978596568107605,
+        -0.9999938607215881
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 524256,
+      "componentType": 5126,
+      "count": 65532,
+      "max": [
+        0.9874709844589233,
+        0.9973980188369751
+      ],
+      "min": [
+        0.006180000025779009,
+        0.0045819999650120735
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 1336368,
+      "componentType": 5125,
+      "count": 332121,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 3145536,
+      "componentType": 5126,
+      "count": 65533,
+      "max": [
+        0.05554916709661484,
+        0.12428291141986847,
+        0.17161820828914642
+      ],
+      "min": [
+        -0.05136054754257202,
+        0.00044399540638551116,
+        -0.11597790569067001
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 3931932,
+      "componentType": 5126,
+      "count": 65533,
+      "max": [
+        0.9999898076057434,
+        0.9999913573265076,
+        0.9999887347221375
+      ],
+      "min": [
+        -0.9999899864196777,
+        -0.9999995827674866,
+        -0.9999600648880005
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 1048512,
+      "componentType": 5126,
+      "count": 65533,
+      "max": [
+        0.9835339784622192,
+        0.9998850226402283
+      ],
+      "min": [
+        0.003456000005826354,
+        0.0032579998951405287
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 2664852,
+      "componentType": 5125,
+      "count": 305793,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 4718328,
+      "componentType": 5126,
+      "count": 17677,
+      "max": [
+        0.04937191307544708,
+        0.07243895530700684,
+        0.17124971747398376
+      ],
+      "min": [
+        -0.049959104508161545,
+        0.020258154720067978,
+        -0.11482926458120346
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 4930452,
+      "componentType": 5126,
+      "count": 17677,
+      "max": [
+        0.9999951124191284,
+        0.9999991059303284,
+        0.9999141097068787
+      ],
+      "min": [
+        -0.9999580979347229,
+        -0.9884591102600098,
+        -0.9998580813407898
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 1572776,
+      "componentType": 5126,
+      "count": 17677,
+      "max": [
+        0.9901090264320374,
+        0.999547004699707
+      ],
+      "min": [
+        0.006053999997675419,
+        0.003754999954253435
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 3888024,
+      "componentType": 5125,
+      "count": 50649,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "wolkoed (https://sketchfab.com/wolkoed)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/nike-sb-charge-cnvs-46261bacdcbe4f2381edd5d1afc8df91",
+      "title": "Nike SB Charge CNVS"
+    },
+    "generator": "Sketchfab-12.67.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 4090620,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1714192,
+      "byteOffset": 4090620,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 5142576,
+      "byteOffset": 5804812,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 10947388,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/NikeSB_Charge.002_baseColor.png"
+    }
+  ],
+  "materials": [
+    {
+      "name": "NikeSB_Charge.002",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0.0
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "NikeSB_Charge.002_NikeSB_Charge.002_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "NikeSB_Charge.002_NikeSB_Charge.002_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 5,
+            "POSITION": 4,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "NikeSB_Charge.002_NikeSB_Charge.002_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 9,
+            "POSITION": 8,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "NikeSB_Charge.002_NikeSB_Charge.002_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 13,
+            "POSITION": 12,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.1111111640930176,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.467162394588257e-16,
+        -1.1111111640930176,
+        0.0,
+        0.0,
+        1.1111111640930176,
+        2.467162394588257e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "a5afc632d653415cbfc308fbe93840db.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        9.094947017729282e-13,
+        -5.820766091346741e-11,
+        0.0,
+        1.0
+      ],
+      "name": "NikeSB_Charge.002"
+    },
+    {
+      "mesh": 0,
+      "name": "NikeSB_Charge.002_NikeSB_Charge.002_0"
+    },
+    {
+      "mesh": 1,
+      "name": "NikeSB_Charge.002_NikeSB_Charge.002_0"
+    },
+    {
+      "mesh": 2,
+      "name": "NikeSB_Charge.002_NikeSB_Charge.002_0"
+    },
+    {
+      "mesh": 3,
+      "name": "NikeSB_Charge.002_NikeSB_Charge.002_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    }
+  ]
+}

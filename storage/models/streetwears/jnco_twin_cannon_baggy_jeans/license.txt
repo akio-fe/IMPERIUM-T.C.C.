@@ -1,0 +1,11 @@
+Model Information:
+* title:	JNCO Twin Cannon Baggy Jeans
+* source:	https://sketchfab.com/3d-models/jnco-twin-cannon-baggy-jeans-024efe9c2b4345409e3b703ab7f565fc
+* author:	Roman Demichev (https://sketchfab.com/romazu3)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "JNCO Twin Cannon Baggy Jeans" (https://sketchfab.com/3d-models/jnco-twin-cannon-baggy-jeans-024efe9c2b4345409e3b703ab7f565fc) by Roman Demichev (https://sketchfab.com/romazu3) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

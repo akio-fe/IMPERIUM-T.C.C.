@@ -1,0 +1,1 @@
+<h1>Pagamento Recusado.</h1><p>Houve um problema com seu pagamento.</p>

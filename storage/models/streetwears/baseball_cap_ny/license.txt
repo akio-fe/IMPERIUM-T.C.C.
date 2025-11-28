@@ -1,0 +1,11 @@
+Model Information:
+* title:	Baseball Cap NY
+* source:	https://sketchfab.com/3d-models/baseball-cap-ny-b7ecae3e46554ef4ab0b43ee97106e04
+* author:	butterstotch (https://sketchfab.com/butterstotch)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Baseball Cap NY" (https://sketchfab.com/3d-models/baseball-cap-ny-b7ecae3e46554ef4ab0b43ee97106e04) by butterstotch (https://sketchfab.com/butterstotch) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -1,0 +1,755 @@
+@charset "UTF-8";
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+@font-face {
+  font-family: Findel-display;
+  src: url("./public/fonts/Findel-Display-Regular.otf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-image: url(../img/ui/tijolo.png);
+  background-size: contain;
+  background-repeat: repeat-y;
+  font-family: "Poppins", sans-serif;
+}
+/* slider section  */
+
+.slider {
+  height: 103vh;
+  margin-top: -50px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.slider .list .item {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0 0 0 0;
+}
+
+.slider .list .item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slider .list .item .content {
+  position: absolute;
+  top: 20%;
+  max-width: 80%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding-right: 30%;
+  box-sizing: border-box;
+  color: #fff;
+  text-shadow: 0 5px 5px #3c3c3c;
+}
+
+.slider .list .item .content .title,
+.slider .list .item .content .type {
+  font-family: Poppins;
+  font-size: 5em;
+  font-weight: bold;
+  line-height: 1.3em;
+}
+
+.slider .list .item .type {
+  color: #fde401;
+}
+
+.slider .list .item .button {
+  display: grid;
+  grid-template-columns: repeat(2, 130px);
+  grid-template-rows: 40px;
+  gap: 5px;
+  margin-top: 20px;
+}
+
+.slider .list .item .button button {
+  border: none;
+  background-color: #eee;
+  font-family: Poppins;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.4s;
+  letter-spacing: 2px;
+}
+
+.slider .list .item .button button:hover {
+  background-color: #fde401;
+  color: #000;
+  letter-spacing: 3px;
+  box-shadow: 0 5px 5px #000;
+}
+
+.slider .list .item .button button:nth-child(2) {
+  background-color: transparent;
+  border: 1px solid #fff;
+  color: #eee;
+}
+
+/* Thumbnail Section  */
+.thumbnail {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  width: max-content;
+  z-index: 100;
+  display: flex;
+  gap: 20px;
+}
+
+.thumbnail .item {
+  width: 150px;
+  height: 220px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.thumbnail .item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+}
+
+/* nextPrevArrows Section  */
+.nextPrevArrows {
+  position: absolute;
+  top: 80%;
+  right: 56%;
+  z-index: 100;
+  width: 300px;
+  max-width: 30%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.nextPrevArrows button {
+  width: 40px;
+  height: 40px;
+  font-weight: bold;
+  border-radius: 50%;
+  background-color: #fde401;
+  border: none;
+  color: #fff;
+  font-family: monospace;
+  font-weight: bold;
+  transition: 0.5s;
+  cursor: pointer;
+}
+
+.nextPrevArrows button:hover {
+  background-color: #fff;
+  color: #000;
+}
+
+/* Animation Part */
+.slider .list .item:nth-child(1) {
+  z-index: 1;
+}
+
+/* animation text in first item */
+.slider .list .item:nth-child(1) .content .title,
+.slider .list .item:nth-child(1) .content .type,
+.slider .list .item:nth-child(1) .content .buttons {
+  transform: translateY(50px);
+  filter: blur(20px);
+  opacity: 0;
+  animation: showContent 0.5s 1s linear 1 forwards;
+}
+
+@keyframes showContent {
+  to {
+    transform: translateY(0px);
+    filter: blur(0px);
+    opacity: 1;
+  }
+}
+
+.slider .list .item:nth-child(1) .content .title {
+  animation-delay: 0.4s !important;
+}
+
+.slider .list .item:nth-child(1) .content .type {
+  animation-delay: 0.6s !important;
+}
+
+.slider .list .item:nth-child(1) .content .buttons {
+  animation-delay: 1s !important;
+}
+
+/* Animation for next button click */
+.slider.next .list .item:nth-child(1) img {
+  width: 150px;
+  height: 220px;
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  border-radius: 30px;
+  animation: showImage 0.5s linear 1 forwards;
+}
+
+@keyframes showImage {
+  to {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
+.slider.next .thumbnail .item:nth-last-child(1) {
+  overflow: hidden;
+  animation: showThumbnail 0.5s linear 1 forwards;
+}
+
+.slider.prev .list .item img {
+  z-index: 100;
+}
+
+@keyframes showThumbnail {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+}
+
+.slider.next .thumbnail {
+  animation: effectNext 0.5s linear 1 forwards;
+}
+
+@keyframes effectNext {
+  from {
+    transform: translateX(150px);
+  }
+}
+
+/* Animation for prev button click */
+.slider.prev .list .item:nth-child(2) {
+  z-index: 2;
+}
+
+.slider.prev .list .item:nth-child(2) img {
+  animation: outFrame 0.5s linear 1 forwards;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+@keyframes outFrame {
+  to {
+    width: 150px;
+    height: 220px;
+    bottom: 50px;
+    left: 50%;
+    border-radius: 20px;
+  }
+}
+
+.slider.prev .thumbnail .item:nth-child(1) {
+  overflow: hidden;
+  opacity: 0;
+  animation: showThumbnail 0.5s linear 1 forwards;
+}
+
+.slider.next .nextPrevArrows button,
+.slider.prev .nextPrevArrows button {
+  pointer-events: none;
+}
+
+.slider.prev .list .item:nth-child(2) .content .title,
+.slider.prev .list .item:nth-child(2) .content .type,
+.slider.prev .list .item:nth-child(2) .content .buttons {
+  animation: contentOut 1.5s linear 1 forwards !important;
+}
+
+@keyframes contentOut {
+  to {
+    transform: translateY(-150px);
+    filter: blur(20px);
+    opacity: 0;
+  }
+}
+
+@media screen and (max-width: 678px) {
+  .slider .list .item .content {
+    padding-right: 0;
+  }
+
+  .slider .list .item .content .title {
+    font-size: 50px;
+  }
+}
+
+section {
+  margin-top: 5%;
+}
+
+/*seções à direita*/
+
+.sectionDir {
+  margin-top: 50px;
+  gap: 10px;
+  background-color: #f1c40f;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-right: 50px;
+  height: 50px;
+  width: 300px;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  flex-direction: row-reverse;
+  justify-self: flex-end;
+
+  & h2 {
+    margin-right: 60px;
+    color: #202020;
+    font-style: bold;
+    font-family: Helvetica, sans-serif, Arial;
+  }
+
+  & #masc {
+    margin-right: 100px;
+  }
+
+  & i {
+    color: #202020;
+    font-size: 25px;
+  }
+}
+
+.secImgDir {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row-reverse;
+
+  & img {
+    object-fit: cover;
+    border-radius: 15px;
+    width: 400px;
+    height: 400px;
+  }
+}
+
+/*seções à esquerda*/
+
+.sectionEsq {
+  margin-top: 50px;
+  gap: 10px;
+  background-color: #f1c40f;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  padding-left: 50px;
+  height: 50px;
+  width: 300px;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+
+  & h2 {
+    margin-left: 45px;
+    color: #202020;
+    font-style: bold;
+    font-family: Helvetica, sans-serif, Arial;
+  }
+
+  & #fem {
+    margin-left: 125px;
+  }
+
+  & i {
+    color: #202020;
+    font-size: 25px;
+  }
+}
+
+.secImgEsq {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  & img {
+    object-fit: cover;
+    border-radius: 15px;
+    width: 400px;
+    height: 400px;
+  }
+}
+
+/* =================== */
+/* RESPONSIVIDADE MOBILE */
+/* =================== */
+
+@media (max-width: 768px) {
+  /* HEADER */
+  nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  nav a {
+    font-size: 5px;
+    padding: 5px 8px;
+  }
+
+  .linkLogin {
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+
+  /* SLIDER */
+  .slider {
+    height: 65vh;
+  }
+
+  .thumbnail {
+    gap: 5px;
+    left: 10%;
+  }
+
+  .thumbnail .item {
+    width: 80px;
+    height: 120px;
+  }
+
+  /* SEÇÕES */
+  .sectionDir,
+  .sectionEsq {
+    width: 80%;
+    justify-content: center;
+    padding: 0;
+    border-radius: 10px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .secImgDir img,
+  .secImgEsq img {
+    width: 90%;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .secImgDir,
+  .secImgEsq {
+    justify-content: center;
+  }
+
+  /* CATEGORIAS */
+  .categorias {
+    width: 90%;
+    height: auto;
+    padding-bottom: 30px;
+  }
+
+  .coisas {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto;
+    height: auto;
+    gap: 15px;
+  }
+
+  .camisa,
+  .acess,
+  .sapa,
+  .calca {
+    height: 250px !important;
+  }
+
+  /* FOOTER */
+  footer {
+    height: auto;
+    padding: 30px 0;
+  }
+
+  .container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .conteudo_footer,
+  .Localizacao {
+    align-items: center;
+  }
+
+  iframe {
+    width: 90% !important;
+    height: 250px !important;
+  }
+}
+
+/* ============================ */
+/* RESPONSIVIDADE — SLIDER */
+/* ============================ */
+
+@media (max-width: 768px) {
+  /* Remove qualquer espaço no topo */
+  body,
+  html {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Slider ocupa a tela inteira sem espaço */
+  .slider {
+    margin-top: 0 !important;
+    padding: 0 !important;
+    height: 70vh !important;
+    /* Altura ideal para celular */
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .slider .list .item img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Texto do slider adaptado */
+  .slider .list .item .content {
+    width: 100%;
+    padding: 0 10px;
+    left: 53.5%;
+    top: 2%;
+    transform: translateX(-50%);
+    text-align: center;
+  }
+
+  .slider .list .item .button {
+    grid-template-columns: 1fr;
+    width: 60%;
+    margin: 15px auto 0 auto;
+  }
+
+  .nextPrevArrows {
+    right: 50%;
+    bottom: 0%;
+    top: 50%;
+    transform: translateX(78%);
+    width: 120px;
+    gap: 5px;
+    margin-bottom: 100px;
+  }
+
+  .nextPrevArrows button {
+    width: 35px;
+    height: 35px;
+  }
+
+  /* ============================ */
+  /* Esconder APENAS as imagens das sections */
+  /* Mantém o espaço/camada da div */
+  /* ============================ */
+
+  .secImgDir img,
+  .secImgEsq img {
+    display: none !important;
+  }
+
+  /* Mantém a altura original da div */
+  .secImgDir,
+  .secImgEsq {
+    height: 400px;
+    /* mesma altura que já existe no desktop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* =============================== */
+  /* APROXIMAÇÃO DO H2 PERTO DO ÍCONE – 5px */
+  /* =============================== */
+
+  /* ========================================== */
+  /* MOBILE — CENTRALIZAR H2 E REMOVER ÍCONES   */
+  /* ========================================== */
+
+  @media (max-width: 768px) {
+    /* Base das sections no mobile */
+    .sectionEsq,
+    .sectionDir {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* H2 centralizado */
+      width: 100%;
+      height: 50px;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    /* Centralização do H2 */
+    .sectionEsq h2,
+    .sectionDir h2 {
+      margin: 0;
+      text-align: center;
+      width: 100%;
+      font-size: 1.2rem;
+    }
+
+    /* REMOVER ÍCONES APENAS NO MOBILE */
+    .sectionEsq i,
+    .sectionDir i {
+      display: none !important;
+    }
+  }
+
+  /* Ícone da esquerda (masculino) */
+  .sectionDir i {
+    left: 20px;
+  }
+
+  & #masc {
+    margin-left: 100px;
+  }
+
+  /* Ícone da direita (feminino) */
+  .sectionEsq i {
+    right: 20px;
+  }
+
+  & #prom {
+    margin-right: 85px;
+  }
+
+  & #fem {
+    margin-right: 125px;
+  }
+}
+
+/* ============================================= */
+/* MOBILE — AUMENTAR FONTES E BOTÕES DO SLIDER  */
+/* ============================================= */
+
+@media (max-width: 768px) {
+  .slider .list .item img {
+    object-fit: cover;
+    object-position: 80% center !important;
+    /* alternativas:
+           object-position: 80% center;
+           object-position: calc(100% - 40px) center;
+        */
+  }
+
+  /* Aumentar fontes do título e subtítulo */
+  .slider .list .item .content .title {
+    font-size: 3.5rem !important;
+    /* maior */
+    line-height: 1.1;
+  }
+
+  .slider .list .item .content .type {
+    font-size: 3rem !important;
+    /* maior */
+  }
+
+  /* Ajustar textos do parágrafo se houver */
+  .slider .list .item .content p {
+    font-size: 1.1rem;
+  }
+
+  /* Aumentar tamanho dos botões do slider */
+  .slider .list .item .button {
+    grid-template-columns: 1fr;
+    width: 70%;
+    /* um pouco maior */
+    margin-top: 20px;
+    display: block;
+  }
+
+  .slider .list .item .button button {
+    padding: 12px 18px;
+    /* maior área clicável */
+    font-size: 1.1rem;
+    /* letra maior */
+    border-radius: 8px;
+  }
+
+  /* Aumentar prev/next arrows */
+  /*.nextPrevArrows {
+        width: 160px !important;       /* aumenta a barra das setas 
+        top: 87%;
+    }*/
+
+  .nextPrevArrows button {
+    width: 45px !important;
+    /* aumenta os botões */
+    height: 45px !important;
+    font-size: 1.4rem !important;
+    /* seta maior */
+  }
+}
+
+}
+
+/* ===================================================== */
+/* SUPER-MOBILE — TELAS MUITO PEQUENAS (<= 480px)       */
+/* ===================================================== */
+
+@media (max-width: 480px) {
+
+    /* Reduz altura do slider para caber bem */
+    .slider {
+        height: 55vh !important;
+    }
+
+    /* Imagem mais ajustada */
+    .slider .list .item img {
+        object-position: 85% center !important; /* ainda mais puxado pra direita */
+    }
+
+    /* Títulos menores e mais compactos */
+    .slider .list .item .content .title {
+        font-size: 2.3rem !important;
+    }
+
+    .slider .list .item .content .type {
+        font-size: 1.8rem !important;
+    }
+
+    /* Botões menores */
+    .slider .list .item .button {
+        width: 75%;
+        margin-top: 15px;
+    }
+
+    .slider .list .item .button button {
+        padding: 10px 15px;
+        font-size: 0.95rem;
+    }
+
+    /* Thumbnails ainda menores */
+    .thumbnail .item {
+        width: 60px !important;
+        height: 85px !important;
+    }
+
+    /* Setas mais compactas */
+    .nextPrevArrows button {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 1.2rem !important;
+    }
+}

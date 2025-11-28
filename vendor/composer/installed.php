@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'fe_ak/imperium',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'a4c0f2a4d6c90d2fac01f6580ccf21ed3707c189',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -20,9 +20,9 @@
             'dev_requirement' => false,
         ),
         'fe_ak/imperium' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'a4c0f2a4d6c90d2fac01f6580ccf21ed3707c189',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

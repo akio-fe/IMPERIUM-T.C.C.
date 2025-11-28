@@ -1,0 +1,11 @@
+Model Information:
+* title:	Nike SB Charge CNVS
+* source:	https://sketchfab.com/3d-models/nike-sb-charge-cnvs-46261bacdcbe4f2381edd5d1afc8df91
+* author:	wolkoed (https://sketchfab.com/wolkoed)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Nike SB Charge CNVS" (https://sketchfab.com/3d-models/nike-sb-charge-cnvs-46261bacdcbe4f2381edd5d1afc8df91) by wolkoed (https://sketchfab.com/wolkoed) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

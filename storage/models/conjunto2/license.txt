@@ -1,0 +1,11 @@
+Model Information:
+* title:	PANT 3
+* source:	https://sketchfab.com/3d-models/pant-3-986400c4e83e419782c40c40868b87b5
+* author:	vmmaniac (https://sketchfab.com/vmmaniac)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "PANT 3" (https://sketchfab.com/3d-models/pant-3-986400c4e83e419782c40c40868b87b5) by vmmaniac (https://sketchfab.com/vmmaniac) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

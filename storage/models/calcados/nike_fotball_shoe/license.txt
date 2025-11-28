@@ -1,0 +1,11 @@
+Model Information:
+* title:	Nike Fotball Shoe
+* source:	https://sketchfab.com/3d-models/nike-fotball-shoe-2247602d99284d689a419f1dd3f07de4
+* author:	Dan-Levi Tømta (https://sketchfab.com/danbannan)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Nike Fotball Shoe" (https://sketchfab.com/3d-models/nike-fotball-shoe-2247602d99284d689a419f1dd3f07de4) by Dan-Levi Tømta (https://sketchfab.com/danbannan) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Cap
+* source:	https://sketchfab.com/3d-models/cap-4c90a2ee69b64f58979f7ce2475f230f
+* author:	ely3 (https://sketchfab.com/ely3)
+
+Model License:
+* license type:	CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)
+* requirements:	Author must be credited. Modified versions must have the same license. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Cap" (https://sketchfab.com/3d-models/cap-4c90a2ee69b64f58979f7ce2475f230f) by ely3 (https://sketchfab.com/ely3) licensed under CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)
