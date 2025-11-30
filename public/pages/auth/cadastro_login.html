@@ -11,6 +11,7 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <link rel="stylesheet" href="../../assets/css/loginstyle.css">
     <link rel="stylesheet" href="../../assets/css/popups.css">
+    <link rel="stylesheet" href="../../assets/css/googleBtn.css">
 
     <script src="../../assets/js/script.js" defer></script>
 </head>
@@ -42,7 +43,12 @@
                 </div>
                 <button type="submit" class="btn">Login</button>
                 <p>Ou faça login com o Google</p>
-                <button type="button" id="googleButton" class="btn google-btn">Entrar com Google</button>
+                <button type="button" id="googleButton" class="btn google-btn">
+                    <span class="google-icon" aria-hidden="true">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" width="18" height="18" loading="lazy">
+                    </span>
+                    <span class="google-label">Entrar com Google</span>
+                </button>
             </form>
         </div>
 
@@ -75,8 +81,13 @@
                 </div>
 
                 <button type="submit" class="btn">Registre-se</button>
-                <p>Ou faça o registro pelo Google</p>
-                <button type="button" id="googleButton2" class="btn google-btn">Criar conta com Google</button>
+                <p class="reg">Ou faça o registro pelo Google</p>
+                <button type="button" id="googleButton2" class="btn google-btn">
+                    <span class="google-icon" aria-hidden="true">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" width="18" height="18" loading="lazy">
+                    </span>
+                    <span class="google-label">Criar conta com Google</span>
+                </button>
             </form>
         </div>
 

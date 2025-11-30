@@ -189,63 +189,104 @@ h2 {
   cursor: not-allowed;
 }
 
-#tela-pix {
-  display: none;
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 24px;
+.checkout-step {
   background: var(--card);
+  padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  margin-top: 24px;
+}
+
+.lista-enderecos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.endereco-card {
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1f1f1f;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.endereco-card input[type="radio"] {
+  margin-top: 4px;
+}
+
+.endereco-card__info {
+  flex: 1;
+}
+
+.acoes-endereco {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.acoes-endereco__buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.button-link,
+.acoes-endereco button,
+.checkout-step button {
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
   text-align: center;
 }
 
-#tela-pix h2 {
+.button-link {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--accent);
-  margin: 0;
 }
 
-#qr-pix {
-  width: 260px;
-  height: 260px;
-  margin: 18px auto;
-  border-radius: 10px;
-  object-fit: contain;
-  background: #fff;
-  padding: 10px;
+.button-link:hover {
+  opacity: 0.85;
 }
 
-.pix-info {
-  margin-top: 10px;
-  font-size: 18px;
+.primary {
+  background: var(--accent);
+  color: #000;
 }
 
-#copia-cola {
-  width: 90%;
-  height: 110px;
-  margin-top: 12px;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #141414;
+.primary[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.secondary {
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-#btn-japaguei {
-  margin-top: 16px;
-  padding: 12px 18px;
-  border-radius: 8px;
-  border: none;
-  background: #4caf50;
-  color: #fff;
-  cursor: pointer;
-  font-weight: 700;
+.loader {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent);
+  margin: 24px auto;
+  animation: spin 0.9s linear infinite;
 }
 
-.sucesso {
-  color: #4caf50;
-  font-size: 20px;
-  margin-top: 12px;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 700px) {

@@ -4,11 +4,20 @@ const formatBR = (value) => {
 };
 
 const CART_API = window.CARRINHO_API || {};
+const CHECKOUT_API = window.CHECKOUT_API || {};
 const LOGIN_URL = window.CARRINHO_LOGIN_URL || "/";
+const ADD_ADDRESS_URL = window.CHECKOUT_ADD_ADDRESS_URL || "";
+const isAuthenticated = Boolean(window.CARRINHO_IS_AUTHENTICATED);
 
 const state = {
   itens: [],
   subtotal: 0,
+};
+
+const enderecoState = {
+  carregado: false,
+  itens: [],
+  selecionado: null,
 };
 
 let freteSelecionado = 0;
@@ -17,9 +26,15 @@ const listaCarrinho = document.getElementById("lista-carrinho");
 const subtotalEl = document.getElementById("subtotal");
 const freteEl = document.getElementById("frete-valor");
 const totalEl = document.getElementById("total");
-const pixTotalEl = document.getElementById("pix-total");
 const btnFinalizar = document.getElementById("btn-finalizar");
-const inputNumero = document.getElementById("input-numero");
+
+const telaCarrinho = document.getElementById("tela-carrinho");
+const telaEnderecos = document.getElementById("tela-enderecos");
+const telaProcessando = document.getElementById("tela-processando");
+const listaEnderecosEl = document.getElementById("lista-enderecos");
+const btnVoltarCarrinho = document.getElementById("btn-voltar-carrinho");
+const btnIrPagamento = document.getElementById("btn-ir-pagamento");
+const btnCancelarProcessamento = document.getElementById("btn-cancelar-processamento");
 
 const escapeHtml = (value = "") =>
   value
@@ -55,6 +70,80 @@ const setListaMensagem = (mensagem, isError = false) => {
   }">${escapeHtml(mensagem)}</p>`;
 };
 
+const setEnderecoMensagem = (mensagem, isError = false) => {
+  if (!listaEnderecosEl) {
+    return;
+  }
+  listaEnderecosEl.innerHTML = `<p class="estado-lista${
+    isError ? " estado-erro" : ""
+  }">${escapeHtml(mensagem)}</p>`;
+  enderecoState.selecionado = null;
+  habilitarPagamentoSePossivel();
+};
+
+const habilitarPagamentoSePossivel = () => {
+  if (!btnIrPagamento) {
+    return;
+  }
+  btnIrPagamento.disabled = !(enderecoState.selecionado > 0);
+};
+
+const buildEnderecoMarkup = (endereco) => {
+  const id = Number(endereco.id || endereco.EndEntId || 0);
+  const referencia = escapeHtml(
+    endereco.referencia || endereco.label || endereco.EndEntRef || "Endereço"
+  );
+  const rua = endereco.rua || endereco.EndEntRua || "";
+  const numero = endereco.numero || endereco.EndEntNum || "";
+  const bairro = endereco.bairro || endereco.EndEntBairro || "";
+  const cidade = endereco.cidade || endereco.EndEntCid || "";
+  const estado = endereco.estado || endereco.EndEntEst || "";
+  const cep = endereco.cep || endereco.EndEntCep || "";
+  const complemento = endereco.complemento || endereco.EndEntComple || "";
+  const descricao = `${rua}, ${numero} - ${bairro}, ${cidade} - ${estado}, CEP: ${cep}${
+    complemento ? " - " + complemento : ""
+  }`;
+
+  return `
+    <label class="endereco-card">
+      <input type="radio" name="endereco-selecionado" value="${id}">
+      <div class="endereco-card__info">
+        <strong>${referencia}</strong>
+        <p>${escapeHtml(descricao)}</p>
+      </div>
+    </label>
+  `;
+};
+
+const renderizarEnderecos = (enderecos) => {
+  if (!listaEnderecosEl) {
+    return;
+  }
+
+  if (!enderecos.length) {
+    if (ADD_ADDRESS_URL) {
+      const safeUrl = escapeHtml(String(ADD_ADDRESS_URL));
+      listaEnderecosEl.innerHTML = `
+        <p class="estado-lista">
+          Nenhum endereço encontrado. <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">Cadastre um novo</a> para continuar.
+        </p>`;
+    } else {
+      setEnderecoMensagem("Nenhum endereço encontrado. Cadastre um novo para continuar.");
+    }
+    enderecoState.selecionado = null;
+    habilitarPagamentoSePossivel();
+    return;
+  }
+
+  listaEnderecosEl.innerHTML = enderecos.map((item) => buildEnderecoMarkup(item)).join("");
+  enderecoState.selecionado = Number(enderecos[0].id || enderecos[0].EndEntId || 0) || null;
+  const firstRadio = listaEnderecosEl.querySelector('input[name="endereco-selecionado"]');
+  if (firstRadio && enderecoState.selecionado) {
+    firstRadio.checked = true;
+  }
+  habilitarPagamentoSePossivel();
+};
+
 const atualizarTotais = () => {
   if (subtotalEl) {
     subtotalEl.textContent = formatBR(state.subtotal);
@@ -66,9 +155,6 @@ const atualizarTotais = () => {
   if (totalEl) {
     totalEl.textContent = formatBR(total);
   }
-  if (pixTotalEl) {
-    pixTotalEl.textContent = formatBR(total);
-  }
 };
 
 const verificarBotaoFinalizar = () => {
@@ -76,9 +162,7 @@ const verificarBotaoFinalizar = () => {
     return;
   }
   const temProduto = state.itens.length > 0;
-  const freteOk = freteSelecionado > 0;
-  const numeroInformado = Boolean(inputNumero?.value.trim());
-  btnFinalizar.disabled = !(temProduto && freteOk && numeroInformado);
+  btnFinalizar.disabled = !(temProduto && isAuthenticated);
 };
 
 const aplicarSnapshot = (dados) => {
@@ -213,27 +297,91 @@ const removerItem = async (itemId) => {
   }
 };
 
-if (listaCarrinho) {
-  listaCarrinho.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-cart-action]");
-    if (!button) {
-      return;
+const carregarEnderecos = async () => {
+  if (!listaEnderecosEl || !CHECKOUT_API.enderecos) {
+    return;
+  }
+
+  setEnderecoMensagem("Carregando endereços...");
+
+  try {
+    const payload = await requestJson(CHECKOUT_API.enderecos, { method: "GET" });
+    if (!payload) {
+      throw new Error("Não foi possível carregar os endereços.");
     }
-    const itemId = Number(button.dataset.itemId);
-    if (!itemId) {
+    const itens = Array.isArray(payload.enderecos) ? payload.enderecos : [];
+    enderecoState.itens = itens;
+    enderecoState.carregado = true;
+    renderizarEnderecos(itens);
+  } catch (error) {
+    setEnderecoMensagem(error.message || "Não foi possível carregar os endereços.", true);
+  }
+};
+
+const mostrarTela = (nome) => {
+  if (telaCarrinho) {
+    telaCarrinho.style.display = nome === "carrinho" ? "block" : "none";
+  }
+  if (telaEnderecos) {
+    telaEnderecos.style.display = nome === "enderecos" ? "block" : "none";
+  }
+  if (telaProcessando) {
+    telaProcessando.style.display = nome === "processando" ? "block" : "none";
+  }
+};
+
+const irParaEnderecos = () => {
+  if (!isAuthenticated) {
+    window.location.href = LOGIN_URL;
+    return;
+  }
+  if (!state.itens.length) {
+    mostrarAviso("Seu carrinho está vazio.");
+    return;
+  }
+  mostrarTela("enderecos");
+  if (!enderecoState.carregado) {
+    carregarEnderecos();
+  }
+};
+
+const iniciarPagamento = async () => {
+  if (!CHECKOUT_API.criarPedido) {
+    mostrarAviso("Fluxo de pagamento indisponível no momento.");
+    return;
+  }
+
+  if (!(enderecoState.selecionado > 0)) {
+    mostrarAviso("Selecione um endereço para continuar.");
+    return;
+  }
+
+  mostrarTela("processando");
+
+  try {
+    const payload = await requestJson(CHECKOUT_API.criarPedido, {
+      method: "POST",
+      body: {
+        enderecoId: enderecoState.selecionado,
+        freteValor: freteSelecionado,
+      },
+    });
+
+    if (!payload) {
+      throw new Error("Não foi possível iniciar o pagamento.");
+    }
+
+    if (payload.pagamentoUrl) {
+      window.location.href = payload.pagamentoUrl;
       return;
     }
 
-    const action = button.dataset.cartAction;
-    if (action === "incremento") {
-      atualizarItem(itemId, 1);
-    } else if (action === "decremento") {
-      atualizarItem(itemId, -1);
-    } else if (action === "remover") {
-      removerItem(itemId);
-    }
-  });
-}
+    throw new Error(payload.mensagem || "Não foi possível iniciar o pagamento.");
+  } catch (error) {
+    mostrarTela("enderecos");
+    mostrarAviso(error.message || "Falha ao redirecionar para o pagamento.");
+  }
+};
 
 const consultarFrete = async () => {
   const cepInput = document.getElementById("input-cep");
@@ -251,7 +399,6 @@ const consultarFrete = async () => {
     resultado.innerHTML = "<p>CEP inválido. Digite 8 números.</p>";
     freteSelecionado = 0;
     atualizarTotais();
-    verificarBotaoFinalizar();
     return;
   }
 
@@ -263,7 +410,6 @@ const consultarFrete = async () => {
       resultado.innerHTML = "<p>CEP não encontrado.</p>";
       freteSelecionado = 0;
       atualizarTotais();
-      verificarBotaoFinalizar();
       return;
     }
 
@@ -305,13 +451,11 @@ const consultarFrete = async () => {
     `;
 
     atualizarTotais();
-    verificarBotaoFinalizar();
   } catch (error) {
     console.error(error);
     resultado.innerHTML = "<p>Erro ao consultar o CEP.</p>";
     freteSelecionado = 0;
     atualizarTotais();
-    verificarBotaoFinalizar();
   }
 };
 
@@ -327,48 +471,65 @@ if (inputCep) {
     }
   });
 }
-if (inputNumero) {
-  inputNumero.addEventListener("input", verificarBotaoFinalizar);
+
+if (listaCarrinho) {
+  listaCarrinho.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-cart-action]");
+    if (!button) {
+      return;
+    }
+    const itemId = Number(button.dataset.itemId);
+    if (!itemId) {
+      return;
+    }
+
+    const action = button.dataset.cartAction;
+    if (action === "incremento") {
+      atualizarItem(itemId, 1);
+    } else if (action === "decremento") {
+      atualizarItem(itemId, -1);
+    } else if (action === "remover") {
+      removerItem(itemId);
+    }
+  });
+}
+
+if (listaEnderecosEl) {
+  listaEnderecosEl.addEventListener("change", (event) => {
+    const input = event.target.closest('input[name="endereco-selecionado"]');
+    if (!input) {
+      return;
+    }
+    enderecoState.selecionado = Number(input.value) || null;
+    habilitarPagamentoSePossivel();
+  });
 }
 
 if (btnFinalizar) {
   btnFinalizar.addEventListener("click", () => {
-    const telaCarrinho = document.getElementById("tela-carrinho");
-    const telaPix = document.getElementById("tela-pix");
-    if (!telaCarrinho || !telaPix) {
+    if (!isAuthenticated) {
+      window.location.href = LOGIN_URL;
       return;
     }
-
-    telaCarrinho.style.display = "none";
-    telaPix.style.display = "block";
-    if (pixTotalEl) {
-      pixTotalEl.textContent = totalEl
-        ? totalEl.textContent
-        : formatBR(state.subtotal + freteSelecionado);
-    }
-    const pixCode = Array.from({ length: 44 }, () => Math.floor(Math.random() * 10)).join("");
-    const copiaCola = document.getElementById("copia-cola");
-    if (copiaCola) {
-      copiaCola.value = pixCode;
-    }
-    const msgSucesso = document.getElementById("msg-sucesso");
-    if (msgSucesso) {
-      msgSucesso.textContent = "";
-    }
+    irParaEnderecos();
   });
 }
 
-const btnJaPaguei = document.getElementById("btn-japaguei");
-if (btnJaPaguei) {
-  btnJaPaguei.addEventListener("click", () => {
-    const msgSucesso = document.getElementById("msg-sucesso");
-    if (msgSucesso) {
-      msgSucesso.textContent = "Compra realizada com sucesso!";
-    }
-    setTimeout(() => {
-      window.location.href = "PRODUTOS.html";
-    }, 4000);
+if (btnVoltarCarrinho) {
+  btnVoltarCarrinho.addEventListener("click", () => {
+    mostrarTela("carrinho");
   });
 }
 
+if (btnCancelarProcessamento) {
+  btnCancelarProcessamento.addEventListener("click", () => {
+    mostrarTela("enderecos");
+  });
+}
+
+if (btnIrPagamento) {
+  btnIrPagamento.addEventListener("click", iniciarPagamento);
+}
+
+mostrarTela("carrinho");
 carregarCarrinho();

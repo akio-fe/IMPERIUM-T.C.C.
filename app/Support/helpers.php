@@ -33,10 +33,24 @@ function site_path(string $path = ''): string
     $prefix = base_url_prefix();
 
     if ($clean === '') {
-        return $prefix === '' ? '/' : $prefix . '/';
+        $relative = $prefix === '' ? '/' : $prefix . '/';
+    } else {
+        $relative = ($prefix === '' ? '' : $prefix) . '/' . $clean;
     }
 
-    return ($prefix === '' ? '' : $prefix) . '/' . $clean;
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($host === '') {
+        return $relative;
+    }
+
+    $scheme = 'http';
+    if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
+        $scheme = 'https';
+    } elseif (isset($_SERVER['SERVER_PORT']) && (string) $_SERVER['SERVER_PORT'] === '443') {
+        $scheme = 'https';
+    }
+
+    return rtrim($scheme . '://' . $host, '/') . $relative;
 }
 
 function project_root_path(): string

@@ -155,6 +155,8 @@ $freteFormatado = number_format($freteEstimado, 2, ',', '.');
 $totalFormatado = number_format($total, 2, ',', '.');
 
 $btnFinalizarDisabled = !$isAuthenticated || empty($itensCarrinho);
+$enderecosGerenciarUrl = site_path('public/pages/account/enderecos.php');
+$novoEnderecoUrl = site_path('public/pages/account/addEnd.php');
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -228,21 +230,26 @@ $btnFinalizarDisabled = !$isAuthenticated || empty($itensCarrinho);
       <button id="btn-finalizar" class="finalizar" <?= $btnFinalizarDisabled ? 'disabled' : '' ?>>Finalizar compra</button>
     </div>
 
-    <!-- TELA PIX (aparece depois de Finalizar) -->
-    <div id="tela-pix">
-      <h2>Pague via PIX</h2>
-      <!-- imagem do QR: troque PIX.png pela sua imagem se tiver; se não houver, será mostrado o placeholder branco -->
-      <img id="qr-pix" src="<?= asset_path('img/qrcode.png') ?>" alt="QR PIX">
-      <p class="pix-info">Valor final: R$ <strong id="pix-total">0,00</strong></p>
-
-      <label style="display:block;margin-top:10px;color:#ccc">Copia e cola PIX (use este código se preferir)</label>
-      <textarea id="copia-cola" readonly></textarea>
-
-      <div style="margin-top:12px">
-        <button id="btn-japaguei">Já paguei</button>
+    <!-- TELA DE ENDEREÇOS -->
+    <div id="tela-enderecos" class="checkout-step" style="display:none;">
+      <h2>Selecione o endereço de entrega</h2>
+      <p class="estado-lista">Buscaremos seus endereços salvos automaticamente.</p>
+      <div id="lista-enderecos" class="lista-enderecos"></div>
+      <div class="acoes-endereco">
+        <a class="button-link" href="<?= htmlspecialchars($novoEnderecoUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">Cadastrar novo endereço</a>
+        <div class="acoes-endereco__buttons">
+          <button type="button" id="btn-voltar-carrinho" class="secondary">Voltar</button>
+          <button type="button" id="btn-ir-pagamento" class="primary" disabled>Continuar para pagamento</button>
+        </div>
       </div>
+    </div>
 
-      <p id="msg-sucesso" class="sucesso"></p>
+    <!-- TELA DE PROCESSAMENTO -->
+    <div id="tela-processando" class="checkout-step" style="display:none;">
+      <h2>Redirecionando para o Mercado Pago</h2>
+      <p>Estamos registrando o pedido e você será encaminhado para finalizar o pagamento.</p>
+      <div class="loader" aria-hidden="true"></div>
+      <button type="button" id="btn-cancelar-processamento" class="secondary">Cancelar</button>
     </div>
   </div>
 
@@ -250,6 +257,8 @@ $btnFinalizarDisabled = !$isAuthenticated || empty($itensCarrinho);
   $listarCarrinhoUrl = site_path('public/api/carrinho/listar.php');
   $atualizarCarrinhoUrl = site_path('public/api/carrinho/atualizar.php');
   $removerCarrinhoUrl = site_path('public/api/carrinho/remover.php');
+  $enderecosApiUrl = site_path('public/api/checkout/enderecos.php');
+  $criarPedidoUrl = site_path('public/api/checkout/criar_pedido.php');
   ?>
   <script>
     window.CARRINHO_API = {
@@ -258,6 +267,12 @@ $btnFinalizarDisabled = !$isAuthenticated || empty($itensCarrinho);
       remover: <?= json_encode($removerCarrinhoUrl) ?>
     };
     window.CARRINHO_LOGIN_URL = <?= json_encode($loginUrl) ?>;
+    window.CARRINHO_IS_AUTHENTICATED = <?= $isAuthenticated ? 'true' : 'false' ?>;
+    window.CHECKOUT_API = {
+      enderecos: <?= json_encode($enderecosApiUrl) ?>,
+      criarPedido: <?= json_encode($criarPedidoUrl) ?>
+    };
+    window.CHECKOUT_ADD_ADDRESS_URL = <?= json_encode($novoEnderecoUrl) ?>;
   </script>
   <script src="<?= htmlspecialchars(asset_path('js/carrinho.js'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 

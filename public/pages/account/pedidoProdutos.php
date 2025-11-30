@@ -62,7 +62,7 @@ $pedido = null;
 $produtos = [];
 $erroPedido = '';
 
-$sqlPedido = 'SELECT p.PedId, p.PedData, p.PedValorTotal, p.PedStatus, p.PedFormPag,
+$sqlPedido = 'SELECT p.PedId, p.PedData, p.PedValorTotal, p.PedStatus,
                      e.EndEntRua, e.EndEntNum, e.EndEntBairro, e.EndEntCid, e.EndEntEst, e.EndEntCep, e.EndEntComple
               FROM pedido p
               INNER JOIN enderecoentrega e ON p.EndEntId = e.EndEntId

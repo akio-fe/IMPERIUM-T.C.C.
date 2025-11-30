@@ -54,7 +54,8 @@ $logoSrc = asset_path('img/aguia.png');
 $loginUrl = site_path('public/pages/auth/cadastro_login.html');
 $cartIcon = asset_path('img/carrin.png');
 $profileIcon = asset_path('img/perfilzin.png');
-$perfilUrl = site_path('public/pages/account/perfil.php');
+$profileLink = site_path('public/pages/account/perfil.php');
+$cartLink = site_path('public/pages/shop/carrinho.php');
 
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
   $header = "<header>

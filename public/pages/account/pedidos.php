@@ -92,6 +92,7 @@ $cartoesUrl = htmlspecialchars(url_path('public/pages/account/cartoes.html'), EN
 $favoritosUrl = htmlspecialchars(url_path('public/pages/shop/favoritos.php'), ENT_QUOTES, 'UTF-8');
 $logoutUrl = htmlspecialchars(url_path('public/api/auth/logout.php'), ENT_QUOTES, 'UTF-8');
 $detalheBaseUrl = url_path('public/pages/account/pedidoProdutos.php');
+$reemitirPagamentoUrl = htmlspecialchars(url_path('public/api/checkout/reemitir_pagamento.php'), ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -174,6 +175,32 @@ $detalheBaseUrl = url_path('public/pages/account/pedidoProdutos.php');
     .primary-link:hover {
       opacity: 0.85;
     }
+
+    .secondary-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--highlight);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+
+    .secondary-link:hover {
+      opacity: 0.85;
+    }
+
+    .order-card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
   </style>
 </head>
 <body>
@@ -208,11 +235,75 @@ $detalheBaseUrl = url_path('public/pages/account/pedidoProdutos.php');
             <p><strong>Status:</strong> <?= htmlspecialchars(statusPedido((int) $pedido['PedStatus']), ENT_QUOTES, 'UTF-8') ?></p>
             <p><strong>Entrega:</strong> <?= htmlspecialchars($pedido['EndEntRua'], ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars($pedido['EndEntNum'], ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars($pedido['EndEntBairro'], ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars($pedido['EndEntCid'], ENT_QUOTES, 'UTF-8') ?> - <?= htmlspecialchars($pedido['EndEntEst'], ENT_QUOTES, 'UTF-8') ?>, CEP: <?= htmlspecialchars($pedido['EndEntCep'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php $detalheUrl = htmlspecialchars($detalheBaseUrl . '?pedido=' . (int) $pedido['PedId'], ENT_QUOTES, 'UTF-8'); ?>
-            <a class="primary-link" href="<?= $detalheUrl ?>">Ver detalhes</a>
+            <div class="order-card-actions">
+              <?php if ((int) $pedido['PedStatus'] === 0): ?>
+                <button type="button" class="primary-link js-pay-pedido" data-pay-pedido="<?= (int) $pedido['PedId'] ?>">Ir para pagamento</button>
+              <?php endif; ?>
+              <a class="secondary-link" href="<?= $detalheUrl ?>">Ver detalhes</a>
+            </div>
           </div>
         <?php endforeach; ?>
       </div>
     <?php endif; ?>
   </div>
+  <script>
+    (function () {
+      const endpoint = '<?= $reemitirPagamentoUrl ?>';
+      const payButtons = document.querySelectorAll('.js-pay-pedido');
+      if (!payButtons.length || !endpoint) {
+        return;
+      }
+
+      const solicitarPagamento = async (pedidoId) => {
+        const resposta = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ pedidoId })
+        });
+
+        const payload = await resposta.json().catch(() => null);
+        if (!resposta.ok || !payload) {
+          const mensagem = payload && payload.mensagem ? payload.mensagem : 'Falha ao gerar o link de pagamento.';
+          throw new Error(mensagem);
+        }
+
+        if (!payload.pagamentoUrl) {
+          throw new Error('Retorno inválido do serviço de pagamento.');
+        }
+
+        return payload.pagamentoUrl;
+      };
+
+      payButtons.forEach((botao) => {
+        botao.addEventListener('click', async () => {
+          if (botao.disabled) {
+            return;
+          }
+
+          const pedidoId = Number(botao.dataset.payPedido || 0);
+          if (!pedidoId) {
+            alert('Pedido inválido.');
+            return;
+          }
+
+          const textoOriginal = botao.textContent;
+          botao.disabled = true;
+          botao.textContent = 'Gerando pagamento...';
+
+          try {
+            const pagamentoUrl = await solicitarPagamento(pedidoId);
+            window.location.href = pagamentoUrl;
+          } catch (erro) {
+            alert(erro.message || 'Não foi possível redirecionar para o pagamento.');
+            botao.disabled = false;
+            botao.textContent = textoOriginal;
+          }
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
