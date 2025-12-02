@@ -1,3 +1,37 @@
+/*
+ ============================================================
+ CSS: header.css
+ ============================================================
+ 
+ Propósito:
+ Estilos do cabeçalho do site (logo, navegação, ícones, busca).
+ Controla sticky behavior, sombras, e responsividade do menu.
+ 
+ Seções:
+ - Barra superior (informativos, links rápidos)
+ - Área de logo e busca
+ - Menu de navegação principal
+ - Ícones de usuário, favoritos, carrinho
+ 
+ Responsividade:
+ - Menu colapsável em telas pequenas (hambúrguer)
+ - Espaçamentos adaptativos via flexbox/grid
+ 
+ Z-Index:
+ - Mantenha header acima de modais e dropdowns (z-index alto)
+ */
+
+/* Barra superior */
+/* Tipografia, espaçamento e cor de fundo */
+
+/* Área de logo e busca */
+/* Alinhamento, largura máxima do campo de busca */
+
+/* Menu principal */
+/* Estilos de links, estados ativos, indicadores */
+
+/* Ícones utilitários */
+/* Tamanhos, espaçamento e estados de foco */
 /* HEADER */
 header a {
   font-size: 17px !important;

@@ -1,3 +1,18 @@
+/*
+ ============================================================
+ CSS: googleBtn.css
+ ============================================================
+ 
+ Propósito:
+ Estiliza o botão de login com Google (OAuth) mantendo identidade
+ visual consistente com Material/Google Guidelines.
+ 
+ Diretrizes:
+ - Altura mínima 40–44px para acessibilidade
+ - Ícone Google à esquerda, texto centrado
+ - Estados :hover, :active e :focus com transições suaves
+ - Utilize border-radius compatível com o restante da UI
+ */
 .btn.google-btn {
   display: flex;
   align-items: center;

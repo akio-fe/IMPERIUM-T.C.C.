@@ -1,3 +1,18 @@
+/*
+ ============================================================
+ CSS: popups.css
+ ============================================================
+ 
+ Propósito:
+ Estilos de popups, modais e toasts (avisos), incluindo animações
+ suaves e camadas (backdrop, conteúdo, close buttons).
+ 
+ Boas práticas:
+ - Backdrop com opacidade adequada
+ - Conteúdo centralizado e responsivo
+ - Foco gerenciado (outline em botões de fechar)
+ - z-index acima de header e dropdowns
+ */
 /* Estilos do Pop-up */
 #popup-overlay {
     position: fixed;

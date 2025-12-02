@@ -1,3 +1,17 @@
+/*
+ ============================================================
+ CSS: perfil.css
+ ============================================================
+ 
+ Propósito:
+ Estilos da página de perfil do usuário (foto, dados, ações).
+ Organização em cards/seções com títulos claros e componentes reutilizáveis.
+ 
+ Diretrizes:
+ - Espaçamento consistente entre seções
+ - Tamanhos de fonte legíveis
+ - Botões de ação visíveis com estados de foco
+ */
 :root {
   --bg-color: #111;
   --text-color: #eee;

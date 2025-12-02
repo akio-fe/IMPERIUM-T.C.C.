@@ -388,12 +388,9 @@ CREATE TABLE EstoqueProduto (
     -- Quando = 0, produto indisponível neste estoque
     EstProQtd INT NOT NULL DEFAULT 0,
     
-    -- Timestamp de última atualização do registro
-    -- CURRENT_DATE: define apenas a data na criação (hora = 00:00:00)
-    -- ON UPDATE CURRENT_DATE: atualiza a data em qualquer UPDATE
-    -- Usado para auditoria; se precisar precisão de hora, use CURRENT_TIMESTAMP
-    EstProDataAtu TIMESTAMP NOT NULL DEFAULT CURRENT_DATE ON UPDATE CURRENT_DATE,
-    
+    -- Data de última atualização do registro
+    -- Usado para auditoria; se precisar precisão de hora, use 
+    EstProDataAtu DATE NOT NULL,
     -- Chave estrangeira que identifica o local de estoque
     EstoId INT NOT NULL,
     

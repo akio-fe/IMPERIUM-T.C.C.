@@ -1,3 +1,37 @@
+/*
+ ============================================================
+ CSS: style.css
+ ============================================================
+ 
+ Propósito:
+ Estilos globais da aplicação (cores, tipografia, componentes comuns,
+ grids e utilitários). Base compartilhada por todas as páginas.
+ 
+ Convenções:
+ - Variáveis CSS em :root (cores, espaçamentos)
+ - Utilitários prefixados (.u-*)
+ - Componentes com BEM (ex: .card, .card__title, .card--featured)
+ 
+ Performance:
+ - Evite seletores complexos (descendentes profundos)
+ - Prefira classes sobre seletores de tag
+ - Minimize reflows e repaints com transições leves
+ */
+
+/* Variáveis globais (:root) */
+/* Paleta IMPERIUM, espaçamentos, z-index base */
+
+/* Tipografia base */
+/* Font-family, tamanhos responsivos, line-height */
+
+/* Grids e containers */
+/* Larguras máximas, gutters, alinhamentos */
+
+/* Componentes comuns */
+/* Cards, botões, badges, alerts */
+
+/* Utilitários */
+/* .u-hidden, .u-text-center, .u-margin-* */
 @charset "UTF-8";
 @font-face {
   font-family: Findel-display;

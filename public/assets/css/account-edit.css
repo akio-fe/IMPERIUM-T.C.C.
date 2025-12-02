@@ -1,3 +1,22 @@
+/*
+ ============================================================
+ CSS: account-edit.css
+ ============================================================
+ 
+ Propósito:
+ Estiliza a página de edição de conta do usuário (perfil, dados pessoais,
+ senha, e preferências). Foco em legibilidade e usabilidade.
+ 
+ Diretrizes de manutenção:
+ - Utilize classes semânticas (ex: .form-section, .input-group)
+ - Priorize layout responsivo com flex/grid
+ - Evite sobrepor regras globais de style.css sem necessidade
+ 
+ Acessibilidade:
+ - Tamanhos de fonte mínimos 14px
+ - Contraste adequado para texto e campos
+ - Estados de foco visíveis (outline/focus styles)
+ */
 .card form {
 	display: flex;
 	flex-direction: column;

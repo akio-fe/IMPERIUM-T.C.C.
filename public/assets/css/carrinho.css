@@ -1,3 +1,46 @@
+/*
+ ============================================================
+ CSS: carrinho.css
+ ============================================================
+ 
+ Propósito:
+ Estilos da página de carrinho de compras e fluxo de checkout.
+ Estrutura visual das listas de itens, resumo de valores, telas de
+ endereços e estado de processamento.
+ 
+ Guia de seções:
+ - Layout principal do carrinho
+ - Lista de itens e estados (vazio/erro)
+ - Resumo (subtotal, frete, total)
+ - Navegação de telas (carrinho → endereços → processamento)
+ - Botões de ação (finalizar, voltar, pagar)
+ 
+ Responsividade:
+ - Utilize breakpoints em 576px, 768px, 992px quando necessário
+ - Garanta touch targets mínimos de 44px
+ 
+ Acessibilidade:
+ - Forneça estados :focus visíveis
+ - Use cores com bom contraste para avisos (erro/sucesso)
+ */
+
+/* Layout principal do carrinho */
+/* Container geral, espaçamentos e largura máxima */
+
+/* Lista de itens */
+/* Cards de produto, imagem, nome, quantidade, preço */
+
+/* Estados da lista */
+/* .estado-lista, .estado-erro: mensagens de vazio/erro */
+
+/* Resumo de valores */
+/* Subtotal, frete, total com destaques visuais */
+
+/* Navegação de telas */
+/* .tela-carrinho, .tela-enderecos, .tela-processando */
+
+/* Botões de ação */
+/* .btn-finalizar, .btn-voltar, .btn-ir-pagamento */
 :root {
   --bg: #121212;
   --card: #1b1b1b;

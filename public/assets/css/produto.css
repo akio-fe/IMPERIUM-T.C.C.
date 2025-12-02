@@ -1,3 +1,34 @@
+/*
+ ============================================================
+ CSS: produto.css
+ ============================================================
+ 
+ Propósito:
+ Página de detalhes do produto (galeria, informações, seletor de tamanho,
+ preço e CTA). Inclui integração visual com renderização 3D (GLTF/Three.js).
+ 
+ Seções:
+ - Galeria de imagens / viewer 3D
+ - Informações (título, descrição, preço)
+ - Seletores (tamanho, quantidade)
+ - Ações (adicionar ao carrinho, favoritar)
+ 
+ Performance:
+ - Reduza efeitos pesados na área 3D
+ - Evite reflows com layouts estáveis
+ */
+
+/* Galeria / Viewer 3D */
+/* Tamanhos, limites e comportamento responsivo */
+
+/* Informações do produto */
+/* Tipografia e espaçamento */
+
+/* Seletores */
+/* Estados ativos e desabilitados */
+
+/* Ações */
+/* Botões, ícones e feedbacks */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
 * {
@@ -223,6 +254,8 @@ main {
 
 .toggle-favorito {
   cursor: pointer;
+  /* Compatibilidade: Safari/iOS requer prefixo -webkit- */
+  -webkit-user-select: none;
   user-select: none;
   display: inline-flex;
   align-items: center;

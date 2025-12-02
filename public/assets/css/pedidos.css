@@ -1,3 +1,24 @@
+/*
+ ============================================================
+ CSS: pedidos.css
+ ============================================================
+ 
+ Propósito:
+ Estiliza a listagem e detalhes de pedidos na área do cliente.
+ Inclui tabela de pedidos, badges de status, e cartões de itens.
+ 
+ Status visual (cores sugeridas):
+ - Aguardando Pagamento: amarelo/dourado
+ - Pago: verde
+ - Em Separação: azul
+ - Enviado: roxo
+ - Entregue: cinza/verde suave
+ - Cancelado: vermelho
+ 
+ Responsividade:
+ - Tabelas devem virar cards em telas pequenas
+ - Evitar overflow horizontal
+ */
 .back-button {
   position: fixed;
   top: 20px;

@@ -195,7 +195,7 @@ $header = generateHeader($conn, $filtro);
           <a href="editar.php">EDITAR</a>
         </div>
         <div class="edit-btn">
-          <a href="deletar.php">DELETAR</a>
+          <a href="#" id="btn-delete-account">DELETAR</a>
         </div>
       </div>
 
@@ -212,6 +212,81 @@ $header = generateHeader($conn, $filtro);
 
 
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBtblDahBpfrT4CaLl2viS0D2890iJ_RFE",
+      authDomain: "imperium-0001.firebaseapp.com",
+      projectId: "imperium-0001",
+      storageBucket: "imperium-0001.firebasestorage.app",
+      messagingSenderId: "961834611988",
+      appId: "1:961834611988:web:0a2ad6089630324094be01",
+      measurementId: "G-M39V86RLKS",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const btnDelete = document.getElementById('btn-delete-account');
+    if (btnDelete) {
+      btnDelete.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        if (!confirm('ATENÇÃO: Tem certeza que deseja excluir sua conta permanentemente?\n\n- Todo o seu histórico de pedidos será apagado.\n- Seus favoritos e carrinho serão perdidos.\n- Esta ação NÃO pode ser desfeita.')) {
+          return;
+        }
+
+        const user = auth.currentUser;
+        if (!user) {
+          alert('Erro: Não foi possível identificar o usuário logado. Tente recarregar a página.');
+          return;
+        }
+
+        try {
+          // Força refresh do token para garantir claims atualizadas
+          const token = await user.getIdToken(true);
+
+          const response = await fetch('../../api/auth/delete.php', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          // Verifica se a resposta é JSON válido
+          const text = await response.text();
+          let data;
+          try {
+              data = JSON.parse(text);
+          } catch (e) {
+              console.error('Resposta não-JSON:', text);
+              throw new Error('O servidor retornou uma resposta inválida.');
+          }
+
+          if (response.ok && data.success) {
+            alert('Sua conta foi excluída com sucesso.');
+            await signOut(auth);
+            window.location.href = '../../../index.php';
+          } else {
+            if (data.code === 'EMAIL_NOT_VERIFIED') {
+              if (confirm(data.message + '\n\nDeseja receber um novo email de verificação agora?')) {
+                await sendEmailVerification(user);
+                alert('Email enviado! Verifique sua caixa de entrada (e spam) e tente novamente após verificar.');
+              }
+            } else {
+              alert('Erro ao excluir conta: ' + (data.message || 'Erro desconhecido'));
+            }
+          }
+        } catch (error) {
+          console.error('Erro na exclusão:', error);
+          alert('Ocorreu um erro ao processar sua solicitação: ' + error.message);
+        }
+      });
+    }
+  </script>
 </body>
 
 </html>

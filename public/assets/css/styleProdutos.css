@@ -1,3 +1,31 @@
+/*
+ ============================================================
+ CSS: styleProdutos.css
+ ============================================================
+ 
+ Propósito:
+ Estilos da listagem de produtos (página shop): grid de cards,
+ filtros por categoria, hover states e responsividade.
+ 
+ Seções:
+ - Barra de filtros/navegação
+ - Grid de produtos
+ - Card do produto (imagem, nome, preço)
+ - Estados de hover/foco
+ 
+ Responsividade:
+ - Grid adaptativo (2–4 colunas conforme largura)
+ - Imagens responsivas sem distorção (object-fit)
+ */
+
+/* Barra de filtros */
+/* Navegação por categoria com estados ativos */
+
+/* Grid de produtos */
+/* Definição de colunas e espaçamentos */
+
+/* Cards dos produtos */
+/* Sombras, bordas e transições de hover */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap");
 
 * {
