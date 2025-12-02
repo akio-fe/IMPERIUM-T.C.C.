@@ -1,3 +1,67 @@
+/**
+ * ============================================================
+ * MÓDULO: Gerenciamento de Produtos Favoritos
+ * ============================================================
+ * 
+ * Propósito:
+ * Interface para visualizar e remover produtos favoritados pelo usuário.
+ * Lista de desejos (wishlist) para compras futuras.
+ * 
+ * Funcionalidades:
+ * - Listar produtos favoritos do usuário autenticado
+ * - Remover item da lista de favoritos
+ * - Feedback visual de carregamento e erros
+ * - Exibição de data de favoritação
+ * - Link para página do produto
+ * - Redirecionamento para login se não autenticado
+ * 
+ * Arquitetura:
+ * - State management implícito (renderização baseada em API)
+ * - Event delegation para botões de remoção
+ * - Fetch API para comunicação com backend
+ * - DOM manipulation (criação dinâmica de cards)
+ * 
+ * API Backend:
+ * - GET /api/favoritos.php: lista favoritos do usuário
+ * - DELETE /api/favoritos.php: remove favorito
+ * - Autenticação: sessão PHP (cookies)
+ * - Retorna 401 se não autenticado
+ * 
+ * Banco de Dados (MySQL):
+ * Tabela: favoritos
+ * - FavId (PK)
+ * - CliId (FK → clientes)
+ * - RoupaId (FK → roupas)
+ * - FavData (timestamp de criação)
+ * 
+ * HTML esperado:
+ * <div id="favoritosStatus"></div>
+ * <div id="favoritosContainer"></div>
+ * 
+ * Tecnologias:
+ * - Vanilla JavaScript (ES6+)
+ * - Fetch API (async/await)
+ * - Template literals (HTML dinâmico)
+ */
+
+// ===== FUNÇÃO UTILITÁRIA: RESOLUÇÃO DE CAMINHOS =====
+/**
+ * Detecta a pasta /public/ na URL e retorna o caminho base.
+ * 
+ * Cenários:
+ * 1. URL: https://site.com/TCC/public/pages/favoritos.html
+ *    Retorna: "/TCC/public"
+ * 
+ * 2. URL: https://site.com/favoritos.html (sem /public/)
+ *    Retorna: ""
+ * 
+ * Uso:
+ * - Construir URLs relativas para APIs e páginas
+ * - Funciona em diferentes ambientes (dev, prod, subpastas)
+ * - Evita hardcoding de caminhos
+ * 
+ * @returns {string} - Caminho base até /public ou string vazia
+ */
 const resolvePublicRoot = () => {
   const { pathname } = window.location;
   const publicIndex = pathname.indexOf("/public/");
@@ -7,10 +71,39 @@ const resolvePublicRoot = () => {
   return `${pathname.slice(0, publicIndex)}/public`;
 };
 
+// ===== CONSTANTES DE CONFIGURAÇÃO =====
+/**
+ * URLs usadas pelo módulo.
+ * 
+ * PUBLIC_ROOT: caminho base da pasta public
+ * FAVORITOS_API_URL: endpoint da API de favoritos
+ * LOGIN_PAGE: página de login/cadastro
+ * 
+ * Exemplo de valores:
+ * - PUBLIC_ROOT: "/TCC/public"
+ * - FAVORITOS_API_URL: "/TCC/public/api/favoritos.php"
+ * - LOGIN_PAGE: "/TCC/public/pages/auth/cadastro_login.html"
+ */
 const PUBLIC_ROOT = resolvePublicRoot();
 const FAVORITOS_API_URL = `${PUBLIC_ROOT}/api/favoritos.php`;
 const LOGIN_PAGE = `${PUBLIC_ROOT}/pages/auth/cadastro_login.html`;
 
+// ===== REFERÊNCIAS DOS ELEMENTOS HTML =====
+/**
+ * Elementos principais da interface de favoritos.
+ * 
+ * statusEl: elemento para mensagens de status
+ * - Exibe "Carregando...", "X produtos favoritados", erros, etc
+ * - Feedback visual para o usuário
+ * 
+ * containerEl: container para lista de produtos
+ * - Cards de produtos renderizados dinamicamente
+ * - Vazio = nenhum favorito
+ * 
+ * HTML esperado:
+ * <p id="favoritosStatus">Carregando favoritos...</p>
+ * <div id="favoritosContainer"><!-- Cards aqui --></div>
+ */
 const statusEl = document.getElementById("favoritosStatus");
 const containerEl = document.getElementById("favoritosContainer");
 
