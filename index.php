@@ -48,6 +48,49 @@ if ($resultado = $conn->query($sql)) {
     $erroProdutos = 'Não foi possível carregar os produtos. Tente novamente em instantes.';
 }
 
+// Produtos aleatórios para promoções, mais vendidos e recomendados
+$produtosAleatorios = [];
+$sqlAleatorio = "SELECT r.RoupaId, r.RoupaNome, r.RoupaImgUrl, r.RoupaValor 
+                 FROM roupa r 
+                 ORDER BY RAND() 
+                 LIMIT 9";
+if ($resultado = $conn->query($sqlAleatorio)) {
+    while ($linha = $resultado->fetch_assoc()) {
+        $produtosAleatorios[] = $linha;
+    }
+    $resultado->free();
+}
+
+// Produtos masculinos
+$produtosMasculinos = [];
+$sqlMasculino = "SELECT r.RoupaId, r.RoupaNome, r.RoupaImgUrl, r.RoupaValor 
+                 FROM roupa r 
+                 INNER JOIN catroupa c ON c.CatRId = r.CatRId 
+                 WHERE c.CatRSexo = 'Masculino' 
+                 ORDER BY RAND() 
+                 LIMIT 3";
+if ($resultado = $conn->query($sqlMasculino)) {
+    while ($linha = $resultado->fetch_assoc()) {
+        $produtosMasculinos[] = $linha;
+    }
+    $resultado->free();
+}
+
+// Produtos femininos
+$produtosFemininos = [];
+$sqlFeminino = "SELECT r.RoupaId, r.RoupaNome, r.RoupaImgUrl, r.RoupaValor 
+                FROM roupa r 
+                INNER JOIN catroupa c ON c.CatRId = r.CatRId 
+                WHERE c.CatRSexo = 'Feminino' 
+                ORDER BY RAND() 
+                LIMIT 3";
+if ($resultado = $conn->query($sqlFeminino)) {
+    while ($linha = $resultado->fetch_assoc()) {
+        $produtosFemininos[] = $linha;
+    }
+    $resultado->free();
+}
+
 $logoSrc = asset_path('img/catalog/aguia.png');
 $cartIcon = asset_path('img/catalog/carrin.png');
 $profileIcon = asset_path('img/catalog/perfilzin.png');
@@ -121,7 +164,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                         <div class="title">USE IMPERIUM</div>
                         <div class="type">FORÇA</div>
                         <div class="button">
-                            <button>VER MAIS</button>
+                            <button onclick="window.location.href='<?= url_path('public/pages/shop/index.php') ?>?filtro=todos'">VER MAIS</button>
                         </div>
                     </div>
                 </div>
@@ -133,7 +176,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                         <div class="title">USE IMPERIUM</div>
                         <div class="type">DOMINIO</div>
                         <div class="button">
-                            <button>VER MAIS</button>
+                            <button onclick="window.location.href='<?= url_path('public/pages/shop/index.php') ?>?filtro=todos'">VER MAIS</button>
                         </div>
                     </div>
                 </div>
@@ -145,7 +188,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                         <div class="title">USE IMPERIUM</div>
                         <div class="type">PODER</div>
                         <div class="button">
-                            <button>VER MAIS</button>
+                            <button onclick="window.location.href='<?= url_path('public/pages/shop/index.php') ?>?filtro=todos'">VER MAIS</button>
                         </div>
                     </div>
                 </div>
@@ -157,7 +200,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                         <div class="title">USE IMPERIUM</div>
                         <div class="type">ESTILO</div>
                         <div class="button">
-                            <button>VER MAIS</button>
+                            <button onclick="window.location.href='<?= url_path('public/pages/shop/index.php') ?>?filtro=todos'">VER MAIS</button>
                         </div>
                     </div>
                 </div>
@@ -198,8 +241,25 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 <h2 style="margin-left: 85px;" id="prom">PROMOÇÕES</h2>
                 <i class=" fa-solid fa-money-bills"></i>
             </div>
-            <div class="secImgEsq">
-                <img src="<?= asset_path('public/assets/img/ui/promos.jpg'); ?>" alt="imagem promocional">
+            <div class="section-content">
+                <div class="secImgEsq">
+                    <img src="<?= asset_path('public/assets/img/ui/promos.jpg'); ?>" alt="imagem promocional">
+                </div>
+                <div class="produtos-section">
+                    <?php 
+                    $promocoes = array_slice($produtosAleatorios, 0, 3);
+                    foreach ($promocoes as $produto): 
+                        $produtoUrl = url_path('public/pages/shop/produto.php') . '?id=' . $produto['RoupaId'];
+                    ?>
+                    <div class="produto-card">
+                        <a href="<?= $produtoUrl ?>">
+                            <img src="<?= asset_path($produto['RoupaImgUrl']) ?>" alt="<?= htmlspecialchars($produto['RoupaNome']) ?>">
+                            <h3><?= htmlspecialchars($produto['RoupaNome']) ?></h3>
+                            <p class="preco">R$ <?= number_format($produto['RoupaValor'], 2, ',', '.') ?></p>
+                        </a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </section>
 
@@ -209,8 +269,25 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 <h2>MAIS VENDIDOS</h2>
                 <i class="fa-solid fa-fire"></i>
             </div>
-            <div class="secImgDir">
-                <img src="<?= asset_path('public/assets/img/ui/travis.jpg'); ?>" alt="imagem promocional">
+            <div class="section-content section-content-reverse">
+                <div class="produtos-section">
+                    <?php 
+                    $maisVendidos = array_slice($produtosAleatorios, 3, 3);
+                    foreach ($maisVendidos as $produto): 
+                        $produtoUrl = url_path('public/pages/shop/produto.php') . '?id=' . $produto['RoupaId'];
+                    ?>
+                    <div class="produto-card">
+                        <a href="<?= $produtoUrl ?>">
+                            <img src="<?= asset_path($produto['RoupaImgUrl']) ?>" alt="<?= htmlspecialchars($produto['RoupaNome']) ?>">
+                            <h3><?= htmlspecialchars($produto['RoupaNome']) ?></h3>
+                            <p class="preco">R$ <?= number_format($produto['RoupaValor'], 2, ',', '.') ?></p>
+                        </a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="secImgDir">
+                    <img src="<?= asset_path('public/assets/img/ui/travis.jpg'); ?>" alt="imagem promocional">
+                </div>
             </div>
         </section>
 
@@ -220,8 +297,25 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 <h2>RECOMENDADOS</h2>
                 <i class="fa-solid fa-bolt-lightning"></i>
             </div>
-            <div class="secImgEsq">
-                <img src="<?= asset_path('public/assets/img/ui/mahdi.jpg'); ?>" alt="imagem promocional">
+            <div class="section-content">
+                <div class="secImgEsq">
+                    <img src="<?= asset_path('public/assets/img/ui/mahdi.jpg'); ?>" alt="imagem promocional">
+                </div>
+                <div class="produtos-section">
+                    <?php 
+                    $recomendados = array_slice($produtosAleatorios, 6, 3);
+                    foreach ($recomendados as $produto): 
+                        $produtoUrl = url_path('public/pages/shop/produto.php') . '?id=' . $produto['RoupaId'];
+                    ?>
+                    <div class="produto-card">
+                        <a href="<?= $produtoUrl ?>">
+                            <img src="<?= asset_path($produto['RoupaImgUrl']) ?>" alt="<?= htmlspecialchars($produto['RoupaNome']) ?>">
+                            <h3><?= htmlspecialchars($produto['RoupaNome']) ?></h3>
+                            <p class="preco">R$ <?= number_format($produto['RoupaValor'], 2, ',', '.') ?></p>
+                        </a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </section>
 
@@ -231,8 +325,23 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 <h2 id="masc">MASCULINO</h2>
                 <i class="fa-solid fa-shirt"></i>
             </div>
-            <div class="secImgDir">
-                <img src="<?= asset_path('public/assets/img/ui/modaMasc.png'); ?>" alt="imagem promocional">
+            <div class="section-content section-content-reverse">
+                <div class="produtos-section">
+                    <?php foreach ($produtosMasculinos as $produto): 
+                        $produtoUrl = url_path('public/pages/shop/produto.php') . '?id=' . $produto['RoupaId'];
+                    ?>
+                    <div class="produto-card">
+                        <a href="<?= $produtoUrl ?>">
+                            <img src="<?= asset_path($produto['RoupaImgUrl']) ?>" alt="<?= htmlspecialchars($produto['RoupaNome']) ?>">
+                            <h3><?= htmlspecialchars($produto['RoupaNome']) ?></h3>
+                            <p class="preco">R$ <?= number_format($produto['RoupaValor'], 2, ',', '.') ?></p>
+                        </a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="secImgDir">
+                    <img src="<?= asset_path('public/assets/img/ui/modaMasc.png'); ?>" alt="imagem promocional">
+                </div>
             </div>
         </section>
 
@@ -242,8 +351,23 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 <h2 id="fem">FEMININO</h2>
                 <i class="fa-solid fa-shirt"></i>   
             </div>
-            <div class="secImgEsq">
-                <img src="<?= asset_path('public/assets/img/ui/modaFem.png'); ?>" alt="imagem promocional">
+            <div class="section-content">
+                <div class="secImgEsq">
+                    <img src="<?= asset_path('public/assets/img/ui/modaFem.png'); ?>" alt="imagem promocional">
+                </div>
+                <div class="produtos-section">
+                    <?php foreach ($produtosFemininos as $produto): 
+                        $produtoUrl = url_path('public/pages/shop/produto.php') . '?id=' . $produto['RoupaId'];
+                    ?>
+                    <div class="produto-card">
+                        <a href="<?= $produtoUrl ?>">
+                            <img src="<?= asset_path($produto['RoupaImgUrl']) ?>" alt="<?= htmlspecialchars($produto['RoupaNome']) ?>">
+                            <h3><?= htmlspecialchars($produto['RoupaNome']) ?></h3>
+                            <p class="preco">R$ <?= number_format($produto['RoupaValor'], 2, ',', '.') ?></p>
+                        </a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </section>
     </main>

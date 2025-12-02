@@ -1,3 +1,11 @@
+// Imports do Three.js (usando versão estável)
+import * as THREE from 'https://cdn.skypack.dev/three@0.129.0';
+import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js';
+
+// Torna THREE disponível globalmente para compatibilidade
+window.THREE = THREE;
+
 const resolvePublicRoot = () => {
   const { pathname } = window.location;
   const publicIndex = pathname.indexOf("/public/");
@@ -12,6 +20,9 @@ const CARRINHO_KEY = "carrinho";
 const FAVORITOS_API_URL = `${PUBLIC_ROOT}/api/favoritos.php`;
 const LOGIN_PAGE = `${PUBLIC_ROOT}/pages/auth/cadastro_login.html`;
 const LOGIN_POPUP_ID = "login-required-popup";
+
+// Variável global para armazenar o modelo 3D atual
+let currentModel = null;
 
 const ensureLoginPopup = (() => {
   let created = false;
@@ -183,16 +194,33 @@ const initSearchBar = () => {
   });
 };
 
-const initTamanhos = () => {
-  const botoes = document.querySelectorAll(".tamanhos button");
-  if (!botoes.length) {
+const initTamanhos = (produto) => {
+  const container = document.querySelector(".tamanhos");
+  if (!container) {
     return;
   }
-  botoes.forEach((botao) => {
-    botao.addEventListener("click", () => {
-      botoes.forEach((item) => item.classList.remove("selected"));
-      botao.classList.add("selected");
+
+  // Define os tamanhos baseado na categoria do produto
+  let tamanhos = [];
+  if (produto && produto.categoriaId === 1) {
+    // Calçados: tamanhos numéricos
+    tamanhos = ['38', '39', '40', '41', '42', '43', '44'];
+  } else {
+    // Outras categorias: tamanhos alfabéticos
+    tamanhos = ['PP', 'P', 'M', 'G', 'GG', 'XGG'];
+  }
+
+  // Limpa o container e adiciona os botões
+  container.innerHTML = '';
+  tamanhos.forEach((tamanho) => {
+    const botao = document.createElement('button');
+    botao.type = 'button';
+    botao.textContent = tamanho;
+    botao.addEventListener('click', () => {
+      container.querySelectorAll('button').forEach((item) => item.classList.remove('selected'));
+      botao.classList.add('selected');
     });
+    container.appendChild(botao);
   });
 };
 
@@ -423,6 +451,231 @@ const initCarrinho = (produto) => {
   });
 };
 
+const initThreeViewerDuplo = async (modelPathSuperior, modelPathInferior, options = {}) => {
+  console.log('*** initThreeViewerDuplo CHAMADO ***');
+  console.log('ModelPath Superior recebido:', modelPathSuperior);
+  console.log('ModelPath Inferior recebido:', modelPathInferior);
+  
+  const container3D = document.getElementById("container3D");
+  if (!container3D) {
+    console.error('Container 3D não encontrado!');
+    return;
+  }
+
+  if (viewerStabilityGuard.isDisabled()) {
+    console.warn('Viewer desabilitado por instabilidade');
+    container3D.classList.add("placeholder");
+    notifyViewerIssue();
+    return;
+  }
+
+  const { disableImageBitmap = false } = options;
+  let releaseImageBitmap = null;
+  if (disableImageBitmap) {
+    releaseImageBitmap = imageBitmapToggle.disable();
+  }
+  const releaseImageBitmapOnce = () => {
+    if (releaseImageBitmap) {
+      releaseImageBitmap();
+      releaseImageBitmap = null;
+    }
+  };
+  
+  const showPlaceholder = () => {
+    container3D.classList.add("placeholder");
+  };
+
+  if (!modelPathSuperior && !modelPathInferior) {
+    console.warn('Nenhum modelo fornecido!');
+    showPlaceholder();
+    releaseImageBitmapOnce();
+    return;
+  }
+
+  container3D.classList.remove("placeholder");
+  container3D.innerHTML = "";
+
+  try {
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x333333);
+
+    const camera = new THREE.PerspectiveCamera(45, container3D.clientWidth / container3D.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container3D.clientWidth, container3D.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const onResize = () => {
+      camera.aspect = container3D.clientWidth / container3D.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container3D.clientWidth, container3D.clientHeight);
+    };
+    window.addEventListener("resize", onResize);
+
+    const onContextLost = (evt) => {
+      evt.preventDefault();
+      console.warn("Contexto WebGL perdido");
+    };
+    const onContextRestored = () => {
+      console.info("Contexto WebGL restaurado");
+    };
+    renderer.domElement.addEventListener("webglcontextlost", onContextLost);
+    renderer.domElement.addEventListener("webglcontextrestored", onContextRestored);
+
+    const showPlaceholder = () => {
+      container3D.classList.add("placeholder");
+      container3D.innerHTML = "";
+    };
+
+    container3D.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    directionalLight.position.set(3, 5, 5);
+    scene.add(directionalLight);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enableZoom = false;
+    controls.autoRotate = false;
+    controls.minPolarAngle = Math.PI / 4;
+    controls.maxPolarAngle = Math.PI / 2;
+
+    const loader = new GLTFLoader();
+    let animationFrame = 0;
+
+    const disposeMaterial = (material) => {
+      if (!material) return;
+      if (Array.isArray(material)) {
+        material.forEach(disposeMaterial);
+        return;
+      }
+      Object.keys(material).forEach((key) => {
+        const value = material[key];
+        if (value && typeof value.dispose === "function") {
+          value.dispose();
+        }
+      });
+      material.dispose?.();
+    };
+
+    const disposeSceneObjects = () => {
+      if (!currentModel) return;
+      currentModel.traverse((child) => {
+        if (child.isMesh) {
+          child.geometry?.dispose?.();
+          disposeMaterial(child.material);
+        }
+      });
+      scene.remove(currentModel);
+      currentModel = null;
+    };
+
+    const cleanup = () => {
+      window.removeEventListener("resize", onResize);
+      renderer.domElement.removeEventListener("webglcontextlost", onContextLost);
+      renderer.domElement.removeEventListener("webglcontextrestored", onContextRestored);
+      cancelAnimationFrame(animationFrame);
+      disposeSceneObjects();
+      renderer.dispose();
+      controls.dispose();
+    };
+
+    // Grupo para conter ambos os modelos
+    const grupoCompleto = new THREE.Group();
+    let modelosCarregados = 0;
+    const totalModelos = (modelPathSuperior ? 1 : 0) + (modelPathInferior ? 1 : 0);
+
+    const finalizarCarregamento = () => {
+      if (modelosCarregados < totalModelos) return;
+
+      // Centralizar e escalar o conjunto completo (modelos maiores e mais próximos)
+      const box = new THREE.Box3().setFromObject(grupoCompleto);
+      const size = box.getSize(new THREE.Vector3());
+      const maxDimension = Math.max(size.x, size.y, size.z) || 1;
+      const NORMALIZED_SIZE = 3.5; // Aumentado de 2.5 para 3.5
+      const normalizedScale = NORMALIZED_SIZE / maxDimension;
+      grupoCompleto.scale.setScalar(normalizedScale);
+
+      box.setFromObject(grupoCompleto);
+      const center = box.getCenter(new THREE.Vector3());
+      grupoCompleto.position.sub(center);
+      
+      // Aproximar os modelos um do outro
+      grupoCompleto.children.forEach((child, index) => {
+        if (index === 1) {
+          child.position.z -= 0.3; // Move o segundo modelo mais próximo
+        }
+      });
+
+      scene.add(grupoCompleto);
+      currentModel = grupoCompleto;      const sphere = box.getBoundingSphere(new THREE.Sphere());
+      const radius = sphere.radius || 1;
+      const fitOffset = 1.2;
+      const halfFov = THREE.MathUtils.degToRad(camera.fov / 2);
+      const distance = (radius / Math.sin(halfFov)) * fitOffset;
+      camera.position.set(0, radius * 0.35, distance);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      releaseImageBitmapOnce();
+    };
+
+    // Carregar modelo superior
+    if (modelPathSuperior) {
+      loader.load(
+        modelPathSuperior,
+        (gltf) => {
+          grupoCompleto.add(gltf.scene);
+          modelosCarregados++;
+          console.log('Modelo superior carregado');
+          finalizarCarregamento();
+        },
+        undefined,
+        (error) => {
+          console.error("Erro ao carregar modelo superior", error);
+          modelosCarregados++;
+          finalizarCarregamento();
+        }
+      );
+    }
+
+    // Carregar modelo inferior
+    if (modelPathInferior) {
+      loader.load(
+        modelPathInferior,
+        (gltf) => {
+          grupoCompleto.add(gltf.scene);
+          modelosCarregados++;
+          console.log('Modelo inferior carregado');
+          finalizarCarregamento();
+        },
+        undefined,
+        (error) => {
+          console.error("Erro ao carregar modelo inferior", error);
+          modelosCarregados++;
+          finalizarCarregamento();
+        }
+      );
+    }
+
+    const animate = () => {
+      animationFrame = requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    };
+    animate();
+  } catch (error) {
+    console.error("Erro ao iniciar viewer 3D duplo", error);
+    if (isWebGLOutOfMemory(error) || isWebGLContextInitFailure(error)) {
+      markViewerUnstable();
+    }
+    showPlaceholder();
+    releaseImageBitmapOnce();
+  }
+};
+
 const initThreeViewer = async (modelPath, options = {}) => {
   const container3D = document.getElementById("container3D");
   if (!container3D) {
@@ -482,16 +735,6 @@ const initThreeViewer = async (modelPath, options = {}) => {
   };
 
   try {
-    const THREE = await import(
-      "https://cdn.skypack.dev/three@0.129.0/build/three.module.js"
-    );
-    const { OrbitControls } = await import(
-      "https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js"
-    );
-    const { GLTFLoader } = await import(
-      "https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js"
-    );
-
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#333");
 
@@ -539,7 +782,6 @@ const initThreeViewer = async (modelPath, options = {}) => {
     const loader = new GLTFLoader();
 
     let animationFrame = 0;
-    let currentModel = null;
 
     const disposeMaterial = (material) => {
       if (!material) {
@@ -692,13 +934,101 @@ const initThreeViewer = async (modelPath, options = {}) => {
   }
 };
 
+const initAlternanciaConjunto = (produto) => {
+  // Verifica se é um conjunto (categoria 5=Masculino ou 11=Feminino)
+  if (!produto || (produto.categoriaId !== 5 && produto.categoriaId !== 11)) {
+    return;
+  }
+
+  const botoesPartes = document.querySelectorAll('.btn-parte');
+  if (!botoesPartes.length) {
+    return;
+  }
+
+  let parteAtual = 'completo';
+  const modelPathOriginal = produto.modelPath;
+
+  // Função para carregar modelo específico de cada parte
+  const carregarModelo = async (parte) => {
+    const pathSuperior = modelPathOriginal; // conjunto_X (com underscore)
+    const pathInferior = modelPathOriginal.replace(/conjunto_(\d+)\//, 'conjunto$1/'); // conjuntoX (sem underscore)
+    
+    console.log(`Carregando modelo da parte: ${parte}`);
+    console.log(`Path superior: ${pathSuperior}`);
+    console.log(`Path inferior: ${pathInferior}`);
+    
+    if (parte === 'superior') {
+      // Carrega apenas a parte superior
+      initThreeViewer(pathSuperior);
+    } else if (parte === 'inferior') {
+      // Carrega apenas a parte inferior (calça)
+      initThreeViewer(pathInferior);
+    } else if (parte === 'completo') {
+      // Para o completo, carrega ambos os modelos na mesma cena
+      initThreeViewerDuplo(pathSuperior, pathInferior);
+    }
+  };
+
+  botoesPartes.forEach((botao) => {
+    botao.addEventListener('click', () => {
+      const parte = botao.dataset.parte;
+      if (parte === parteAtual) {
+        return;
+      }
+
+      parteAtual = parte;
+
+      // Atualiza estilos dos botões
+      botoesPartes.forEach((btn) => {
+        if (btn.dataset.parte === parte) {
+          btn.style.background = '#2d3436';
+          btn.style.color = 'white';
+        } else {
+          btn.style.background = '#dfe6e9';
+          btn.style.color = '#2d3436';
+        }
+      });
+
+      // Carrega o modelo da parte selecionada
+      carregarModelo(parte);
+      
+      // Mostra feedback visual
+      const textos = {
+        'completo': 'Conjunto Completo',
+        'superior': 'Parte Superior',
+        'inferior': 'Calça'
+      };
+      exibirToast(`Visualizando: ${textos[parte]}`);
+    });
+  });
+};
+
 const initProdutoPage = () => {
   const produto = parseProdutoData();
+  console.log('Produto carregado:', produto);
+  
   initSearchBar();
-  initTamanhos();
+  initTamanhos(produto);
   initFavorito(produto);
   initCarrinho(produto);
-  initThreeViewer(produto?.modelPath);
+  initAlternanciaConjunto(produto);
+  
+  // Se for conjunto (categoria 5=Masculino ou 11=Feminino), carrega os dois modelos juntos
+  if (produto && (produto.categoriaId === 5 || produto.categoriaId === 11) && produto.modelPath) {
+    const pathSuperior = produto.modelPath; // conjunto_X (com underscore)
+    const pathInferior = produto.modelPath.replace(/conjunto_(\d+)\//, 'conjunto$1/'); // conjuntoX (sem underscore)
+    console.log('=== CARREGANDO CONJUNTO ===');
+    console.log('Categoria ID:', produto.categoriaId);
+    console.log('Path original:', produto.modelPath);
+    console.log('Path Superior:', pathSuperior);
+    console.log('Path Inferior:', pathInferior);
+    initThreeViewerDuplo(pathSuperior, pathInferior);
+  } else {
+    // Para produtos normais, carrega modelo único
+    console.log('=== CARREGANDO PRODUTO NORMAL ===');
+    console.log('Model path:', produto?.modelPath);
+    initThreeViewer(produto?.modelPath);
+  }
 };
 
 document.addEventListener("DOMContentLoaded", initProdutoPage);

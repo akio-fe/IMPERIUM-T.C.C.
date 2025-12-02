@@ -21,19 +21,8 @@ $categoriaSlugMap = [
   6 => 'acessorios',
 ];
 
-$navItems = [
-  'todos' => 'Todos',
-  'camisas' => 'Camisas',
-  'calcas' => 'Calças',
-  'calcados' => 'Calçados',
-  'acessorios' => 'Acessórios',
-];
-
-$navLinksHtml = "<a href='" . site_path('index.php') . "'>Home</a>";
-foreach ($navItems as $slug => $label) {
-  $activeClass = $filtro === $slug ? 'active' : '';
-  $navLinksHtml .= "<a href='index.php?filtro={$slug}' data-tipo='{$slug}' class='{$activeClass}'>{$label}</a>";
-}
+// Carrega o header reutilizável
+require_once __DIR__ . '/../includes/header.php';
 
 $produtos = [];
 $erroProdutos = '';
@@ -50,36 +39,8 @@ if ($resultado = $conn->query($sql)) {
   $erroProdutos = 'Não foi possível carregar os produtos. Tente novamente em instantes.';
 }
 
-$logoSrc = asset_path('img/aguia.png');
-$loginUrl = site_path('public/pages/auth/cadastro_login.html');
-$cartIcon = asset_path('img/carrin.png');
-$profileIcon = asset_path('img/perfilzin.png');
-$profileLink = site_path('public/pages/account/perfil.php');
-$cartLink = site_path('public/pages/shop/carrinho.php');
-
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-  $header = "<header>
-        <div class='linkLogin'>
-            <a href='{$loginUrl}'><i class='fa-solid fa-user'></i>FAÇA LOGIN / CADASTRE-SE</a>
-        </div>
-        <nav>
-            {$navLinksHtml}
-        </nav>
-        <img src='{$logoSrc}' alt='Imperium'>
-    </header>";
-} else {
-  $header = "<header>
-        <div class='acicons'>
-                <a href='{$cartLink}''><img src='{$cartIcon}' alt='Carrinho'></a>
-                <a href='{$profileLink}'><img src='{$profileIcon}' alt='Perfil'></a>
-            </div> 
-        
-        <nav>{$navLinksHtml}</nav>
-
-        <img src='{$logoSrc}' alt='Imperium'>
-                   
-    </header>";
-}
+// Gera o header com o filtro atual
+$header = generateHeader($conn, $filtro);
 
 ?>
 

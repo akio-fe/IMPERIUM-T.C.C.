@@ -247,6 +247,34 @@ main {
   color: #000;
 }
 
+.alternancia-conjunto {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+}
+
+.alternancia-conjunto .btn-parte {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.alternancia-conjunto .btn-parte:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.alternancia-conjunto .btn-parte:active {
+  transform: translateY(0);
+}
+
 @media (max-width: 1024px) {
   header {
     padding: 16px 24px;

@@ -20,60 +20,11 @@ $categoriaSlugMap = [
   6 => 'acessorios',
 ];
 
-$navItems = [
-  'todos' => 'Todos',
-  'camisas' => 'Camisas',
-  'calcas' => 'Calças',
-  'calcados' => 'Calçados',
-  'acessorios' => 'Acessórios',
-];
+// Carrega o header reutilizável
+require_once __DIR__ . '/../includes/header.php';
 
-$navLinksHtml = "<a href='" . site_path('index.php') . "'>Home</a>";
-foreach ($navItems as $slug => $label) {
-  $navLinksHtml .= "<a href='index.php?filtro={$slug}' data-tipo='{$slug}'>{$label}</a>";
-}
-
-$produtos = [];
-$erroProdutos = '';
-
-$sql = "SELECT r.RoupaId, r.RoupaNome, r.RoupaModelUrl, r.RoupaImgUrl, r.RoupaValor, r.CatRId, c.CatRTipo, c.CatRSessao\n        FROM roupa r\n        INNER JOIN catroupa c ON c.CatRId = r.CatRId\n        ORDER BY r.CatRId, r.RoupaNome";
-
-if ($resultado = $conn->query($sql)) {
-  while ($linha = $resultado->fetch_assoc()) {
-    $linha['slug'] = $categoriaSlugMap[$linha['CatRId']] ?? 'outros';
-    $produtos[] = $linha;
-  }
-  $resultado->free();
-} else {
-  $erroProdutos = 'Não foi possível carregar os produtos. Tente novamente em instantes.';
-}
-
-$logoSrc = asset_path('img/aguia.png');
-$loginUrl = site_path('public/pages/auth/cadastro_login.html');
-$cartIcon = asset_path('img/carrin.png');
-$profileIcon = asset_path('img/perfilzin.png');
-$perfilUrl = site_path('public/pages/account/perfil.php');
-
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-  // Cabeçalho para visitantes
-  $header = "<header>
-    <img src='{$logoSrc}' alt=''>
-    <nav>{$navLinksHtml}</nav>
-    <div class='linkLogin'>
-      <a href='{$loginUrl}'><i class='fa-solid fa-user'></i>FAÇA LOGIN / CADASTRE-SE</a>
-    </div>
-  </header>";
-} else {
-  // Cabeçalho para usuários autenticados
-  $header = "<header>
-    <img src='{$logoSrc}' alt=''>
-    <nav>{$navLinksHtml}</nav>
-    <div class='icons'>
-      <a href='carrinho.php'><img src='{$cartIcon}' alt='Carrinho'></a>
-      <a href='{$perfilUrl}'><img src='{$profileIcon}' alt='Perfil'></a>
-    </div>
-  </header>";
-}
+// Gera o header com o filtro atual
+$header = generateHeader($conn, $filtro);
 
 function getSessionUserId(mysqli $conn): ?int
 {
@@ -108,7 +59,7 @@ $erroCarrinho = '';
 
 if ($isAuthenticated) {
   $stmt = $conn->prepare(
-    'SELECT c.CarID, c.CarQtd, c.CarPreco, c.CarTam, r.RoupaNome, r.RoupaImgUrl
+    'SELECT c.CarID, c.CarQtd, c.CarTam, r.RoupaNome, r.RoupaImgUrl, r.RoupaValor
      FROM carrinho c
      INNER JOIN roupa r ON r.RoupaId = c.RoupaId
      WHERE c.UsuId = ?
@@ -121,7 +72,7 @@ if ($isAuthenticated) {
       $resultado = $stmt->get_result();
       while ($row = $resultado->fetch_assoc()) {
         $quantidade = (int) $row['CarQtd'];
-        $precoUnitario = (float) $row['CarPreco'];
+        $precoUnitario = (float) $row['RoupaValor'];
         $itemTotal = $precoUnitario * $quantidade;
         $imagemUrl = asset_path((string) $row['RoupaImgUrl']);
 

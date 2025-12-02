@@ -158,26 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $userId !== null) {
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 	<link rel="icon" href="<?= htmlspecialchars(asset_path('img/catalog/icone.ico'), ENT_QUOTES, 'UTF-8'); ?>">
 	<link rel="stylesheet" href="<?= htmlspecialchars(asset_path('css/perfil.css'), ENT_QUOTES, 'UTF-8'); ?>">
-	<style>
-		.back-button {
-			position: fixed;
-			top: 20px;
-			right: 20px;
-			z-index: 1000;
-			background-color: var(--highlight);
-			color: var(--bg-color);
-			border: none;
-			padding: 10px 20px;
-			border-radius: 6px;
-			cursor: pointer;
-			font-weight: 600;
-			font-size: 0.95rem;
-			transition: opacity 0.2s;
-		}
-		.back-button:hover {
-			opacity: 0.85;
-		}
-	</style>
+	<link rel="stylesheet" href="<?= htmlspecialchars(asset_path('css/account-edit.css'), ENT_QUOTES, 'UTF-8'); ?>">
 </head>
 
 <body>
@@ -191,7 +172,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $userId !== null) {
 			<a href="<?= htmlspecialchars(url_path('public/pages/account/perfil.php'), ENT_QUOTES, 'UTF-8'); ?>" class="active">Dados pessoais</a>
 			<a href="<?= htmlspecialchars(url_path('public/pages/account/enderecos.php'), ENT_QUOTES, 'UTF-8'); ?>" class="active">Endereços</a>
 			<a href="<?= htmlspecialchars(url_path('public/pages/account/pedidos.php'), ENT_QUOTES, 'UTF-8'); ?>">Pedidos</a>
-			<a href="<?= htmlspecialchars(url_path('public/pages/account/cartoes.html'), ENT_QUOTES, 'UTF-8'); ?>">Cartões</a>
 			<a href="<?= htmlspecialchars(url_path('public/pages/shop/favoritos.php'), ENT_QUOTES, 'UTF-8'); ?>">Favoritos</a>
 			<a href="<?= htmlspecialchars(url_path('public/api/auth/logout.php'), ENT_QUOTES, 'UTF-8'); ?>">Sair</a>
 		</nav>

@@ -1,33 +1,172 @@
+/**
+ * ============================================================
+ * MÓDULO: Gerenciamento de Carrinho de Compras
+ * ============================================================
+ * 
+ * Propósito:
+ * Interface JavaScript para gerenciar carrinho de compras e checkout.
+ * Comunica com APIs PHP para persistir dados no MySQL.
+ * 
+ * Funcionalidades:
+ * - Listar itens do carrinho
+ * - Adicionar/remover itens
+ * - Atualizar quantidades
+ * - Calcular subtotal e total com frete
+ * - Selecionar endereço de entrega
+ * - Finalizar pedido (Mercado Pago)
+ * 
+ * Arquitetura:
+ * - State management local (state e enderecoState)
+ * - Comunicação via Fetch API (REST)
+ * - Manipulação do DOM (vanilla JavaScript)
+ * - Event-driven (listeners para botões e formulários)
+ * 
+ * Dependências:
+ * - APIs PHP: adicionar.php, listar.php, atualizar.php, remover.php
+ * - APIs Checkout: criar_pedido.php, enderecos.php
+ * - Variáveis globais injetadas pelo PHP (window.CARRINHO_API, etc)
+ */
+
+// ===== FUNÇÃO UTILITÁRIA: FORMATAÇÃO DE VALORES =====
+/**
+ * Formata números para padrão brasileiro (R$).
+ * 
+ * Conversões:
+ * - 10.5 → "10,50"
+ * - 1234.99 → "1234,99"
+ * - "15" → "15,00"
+ * 
+ * Uso:
+ * `R$ ${formatBR(produto.preco)}`
+ * 
+ * @param {number|string} value - Valor a formatar
+ * @returns {string} - Valor formatado (ex: "123,45")
+ */
 const formatBR = (value) => {
   const number = typeof value === "number" ? value : Number(value) || 0;
   return number.toFixed(2).replace(".", ",");
 };
 
+// ===== CONFIGURAÇÕES E VARIÁVEIS GLOBAIS =====
+/**
+ * Variáveis injetadas pelo PHP no HTML via <script>.
+ * 
+ * Exemplo de injeção PHP:
+ * <script>
+ *   window.CARRINHO_API = {
+ *     adicionar: '/api/carrinho/adicionar.php',
+ *     listar: '/api/carrinho/listar.php',
+ *     atualizar: '/api/carrinho/atualizar.php',
+ *     remover: '/api/carrinho/remover.php'
+ *   };
+ *   window.CARRINHO_IS_AUTHENTICATED = <?= isset($_SESSION['logged_in']) ? 'true' : 'false' ?>;
+ * </script>
+ * 
+ * Fallback: {} ou "" caso variáveis não existam (previne erros).
+ */
 const CART_API = window.CARRINHO_API || {};
 const CHECKOUT_API = window.CHECKOUT_API || {};
 const LOGIN_URL = window.CARRINHO_LOGIN_URL || "/";
 const ADD_ADDRESS_URL = window.CHECKOUT_ADD_ADDRESS_URL || "";
 const isAuthenticated = Boolean(window.CARRINHO_IS_AUTHENTICATED);
 
+// ===== STATE MANAGEMENT: CARRINHO =====
+/**
+ * Estado local do carrinho (sincronizado com backend).
+ * 
+ * Estrutura:
+ * state.itens = [
+ *   {
+ *     id: 1,              // CarID (item no carrinho)
+ *     produtoId: 10,      // RoupaId (produto)
+ *     nome: "Camiseta",
+ *     imagem: "url...",
+ *     quantidade: 2,
+ *     tamanho: "M",
+ *     precoUnitario: 89.90,
+ *     total: 179.80       // quantidade × preçoUnitario
+ *   }
+ * ]
+ * state.subtotal = 179.80 // Soma de todos os totais
+ * 
+ * Atualização:
+ * Sempre que API retorna dados, state é sincronizado.
+ */
 const state = {
   itens: [],
   subtotal: 0,
 };
 
+// ===== STATE MANAGEMENT: ENDEREÇOS DE ENTREGA =====
+/**
+ * Estado dos endereços cadastrados do usuário.
+ * 
+ * Estrutura:
+ * enderecoState = {
+ *   carregado: false,     // True após buscar endereços da API
+ *   itens: [...],         // Lista de endereços
+ *   selecionado: null     // ID do endereço escolhido (EndEntId)
+ * }
+ * 
+ * Fluxo:
+ * 1. Usuário clica "Finalizar Compra"
+ * 2. carregarEnderecos() busca da API
+ * 3. enderecoState.carregado = true
+ * 4. Usuário seleciona endereço
+ * 5. enderecoState.selecionado = ID
+ * 6. Botão "Ir para Pagamento" habilitado
+ */
 const enderecoState = {
   carregado: false,
   itens: [],
   selecionado: null,
 };
 
+// ===== ESTADO DO FRETE =====
+/**
+ * Valor do frete selecionado pelo usuário.
+ * 
+ * Fluxo:
+ * 1. Usuário consulta CEP (API Correios/Melhor Envio)
+ * 2. Escolhe modalidade (PAC, SEDEX, etc)
+ * 3. freteSelecionado recebe valor
+ * 4. Total = subtotal + freteSelecionado
+ * 
+ * Nota: Implementação completa de API de frete não incluída neste TCC.
+ * Valor fixo ou calculado manualmente pelo usuário.
+ */
 let freteSelecionado = 0;
 
+// ===== REFERÊNCIAS DOS ELEMENTOS HTML - TELA DE CARRINHO =====
+/**
+ * Elementos principais da interface do carrinho.
+ * 
+ * HTML esperado:
+ * <div id="lista-carrinho"><!-- Itens renderizados aqui --></div>
+ * <span id="subtotal">0,00</span>
+ * <span id="frete-valor">0,00</span>
+ * <span id="total">0,00</span>
+ * <button id="btn-finalizar">Finalizar Compra</button>
+ */
 const listaCarrinho = document.getElementById("lista-carrinho");
 const subtotalEl = document.getElementById("subtotal");
 const freteEl = document.getElementById("frete-valor");
 const totalEl = document.getElementById("total");
 const btnFinalizar = document.getElementById("btn-finalizar");
 
+// ===== REFERÊNCIAS DOS ELEMENTOS HTML - TELAS DO CHECKOUT =====
+/**
+ * Sistema de telas para fluxo de checkout.
+ * 
+ * Fluxo de navegação:
+ * 1. telaCarrinho (lista de itens) → visível por padrão
+ * 2. telaEnderecos (seleção de endereço) → ao clicar "Finalizar"
+ * 3. telaProcessando (loading) → ao criar pedido no Mercado Pago
+ * 4. Redirecionamento → para URL de pagamento MP
+ * 
+ * Controle:
+ * Mostrar/ocultar via classList.add/remove('d-none') ou style.display.
+ */
 const telaCarrinho = document.getElementById("tela-carrinho");
 const telaEnderecos = document.getElementById("tela-enderecos");
 const telaProcessando = document.getElementById("tela-processando");
@@ -36,6 +175,28 @@ const btnVoltarCarrinho = document.getElementById("btn-voltar-carrinho");
 const btnIrPagamento = document.getElementById("btn-ir-pagamento");
 const btnCancelarProcessamento = document.getElementById("btn-cancelar-processamento");
 
+// ===== FUNÇÃO UTILITÁRIA: SANITIZAÇÃO HTML =====
+/**
+ * Previne ataques XSS (Cross-Site Scripting).
+ * 
+ * Conversões:
+ * - & → &amp;
+ * - < → &lt;
+ * - > → &gt;
+ * - " → &quot;
+ * - ' → &#039;
+ * 
+ * Uso crítico:
+ * Sempre que inserir dados do usuário ou API no HTML via innerHTML.
+ * 
+ * Exemplo de ataque prevenido:
+ * Nome do produto: <script>alert('XSS')</script>
+ * Sem escape: executa script malicioso
+ * Com escape: exibe texto literal
+ * 
+ * @param {string} value - String a sanitizar
+ * @returns {string} - String segura para HTML
+ */
 const escapeHtml = (value = "") =>
   value
     .replace(/&/g, "&amp;")
@@ -44,13 +205,33 @@ const escapeHtml = (value = "") =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
+// ===== FUNÇÃO UTILITÁRIA: NOTIFICAÇÕES TOAST =====
+/**
+ * Exibe notificação temporária no canto inferior direito.
+ * 
+ * Estilo:
+ * - Fundo dourado (#d4af37) - cor tema IMPERIUM
+ * - Texto escuro (#111)
+ * - Animação: fade in + fade out após 2.5s
+ * - z-index alto para sobrepor tudo
+ * 
+ * Uso:
+ * mostrarAviso("Item adicionado ao carrinho!");
+ * mostrarAviso("Erro ao processar pagamento");
+ * 
+ * Alternativa:
+ * Biblioteca externa como Toastify.js, SweetAlert2.
+ * Implementação própria evita dependências.
+ * 
+ * @param {string} mensagem - Texto da notificação
+ */
 const mostrarAviso = (mensagem) => {
   const aviso = document.createElement("div");
   aviso.textContent = mensagem;
   aviso.style.position = "fixed";
   aviso.style.bottom = "24px";
   aviso.style.right = "24px";
-  aviso.style.background = "#d4af37";
+  aviso.style.background = "#d4af37"; // Dourado IMPERIUM
   aviso.style.color = "#111";
   aviso.style.padding = "12px 18px";
   aviso.style.borderRadius = "10px";
@@ -58,6 +239,8 @@ const mostrarAviso = (mensagem) => {
   aviso.style.zIndex = "99999";
   aviso.style.boxShadow = "0 12px 24px rgba(0,0,0,0.25)";
   document.body.appendChild(aviso);
+  
+  // Remove automaticamente após 2.5 segundos
   setTimeout(() => aviso.remove(), 2500);
 };
 

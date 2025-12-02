@@ -1,7 +1,51 @@
-// Importações do Firebase App (necessário para inicializar o Firebase)
+/**
+ * ============================================================
+ * MÓDULO: Autenticação e Cadastro de Usuários
+ * ============================================================
+ * 
+ * Propósito:
+ * Gerencia autenticação completa de usuários usando Firebase Auth.
+ * Suporta cadastro com email/senha e login social (Google).
+ * 
+ * Funcionalidades:
+ * - Cadastro com verificação de email
+ * - Login com email/senha
+ * - Login social com Google (OAuth 2.0)
+ * - Sincronização de dados com Firestore
+ * - Integração com backend PHP via API
+ * 
+ * Fluxo de Autenticação:
+ * 1. Usuário autentica no Firebase (client-side)
+ * 2. Firebase retorna token JWT
+ * 3. Token enviado para backend PHP (/api/auth/login.php)
+ * 4. Backend valida token e cria sessão PHP
+ * 5. Dados do usuário enriquecidos com banco MySQL
+ * 
+ * Tecnologias:
+ * - Firebase Authentication 9.6.1 (modular SDK)
+ * - Firebase Firestore (armazenamento NoSQL)
+ * - ES6 Modules (import/export)
+ */
+
+// ===== IMPORTAÇÕES DO FIREBASE APP =====
+/**
+ * SDK modular do Firebase (v9+).
+ * initializeApp: inicializa aplicação Firebase com credenciais.
+ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 
-// Importações do Firebase Authentication
+// ===== IMPORTAÇÕES DO FIREBASE AUTHENTICATION =====
+/**
+ * Módulo de autenticação Firebase.
+ * 
+ * Métodos importados:
+ * - getAuth: obtém instância do serviço de autenticação
+ * - createUserWithEmailAndPassword: cria nova conta com email/senha
+ * - sendEmailVerification: envia email de verificação
+ * - signInWithEmailAndPassword: login tradicional
+ * - signInWithPopup: login social via popup (Google, Facebook, etc)
+ * - GoogleAuthProvider: provedor OAuth do Google
+ */
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -11,14 +55,52 @@ import {
   GoogleAuthProvider,
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-// Importações do Firestore
+// ===== IMPORTAÇÕES DO FIRESTORE =====
+/**
+ * Banco de dados NoSQL do Firebase.
+ * 
+ * Usado para armazenar dados complementares do usuário:
+ * - Nome completo
+ * - CPF
+ * - Telefone
+ * - Data de nascimento
+ * 
+ * Estrutura:
+ * /usuarios/{uid}/
+ *   - nome: "João Silva"
+ *   - cpf: "123.456.789-00"
+ *   - telefone: "(11) 98765-4321"
+ *   - dataNascimento: "1990-01-15"
+ * 
+ * Métodos:
+ * - getFirestore: obtém instância do Firestore
+ * - doc: referência a documento específico
+ * - setDoc: cria/atualiza documento
+ */
 import {
   getFirestore,
   doc,
   setDoc,
-} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; // <--- Importação corrigida aqui!
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// Firebase configuration para web app
+// ===== CONFIGURAÇÃO DO FIREBASE =====
+/**
+ * Credenciais do projeto Firebase (console.firebase.google.com).
+ * 
+ * Campos:
+ * - apiKey: chave pública da API (seguro expor no front-end)
+ * - authDomain: domínio para autenticação OAuth
+ * - projectId: identificador único do projeto
+ * - storageBucket: bucket para armazenamento de arquivos
+ * - messagingSenderId: ID para Firebase Cloud Messaging
+ * - appId: identificador da aplicação web
+ * - measurementId: Google Analytics (opcional)
+ * 
+ * Segurança:
+ * - apiKey não é secreta (apenas identifica projeto)
+ * - Segurança real vem de Firebase Rules no Firestore/Storage
+ * - Autenticação protege recursos via regras de banco de dados
+ */
 const firebaseConfig = {
   apiKey: "AIzaSyBtblDahBpfrT4CaLl2viS0D2890iJ_RFE",
   authDomain: "imperium-0001.firebaseapp.com",
@@ -29,18 +111,58 @@ const firebaseConfig = {
   measurementId: "G-M39V86RLKS",
 };
 
-// Inicializando o Firebase
+// ===== INICIALIZAÇÃO DOS SERVIÇOS FIREBASE =====
+/**
+ * Instancia serviços Firebase para uso na aplicação.
+ * 
+ * Objetos criados:
+ * - app: aplicação Firebase configurada
+ * - auth: serviço de autenticação (login, cadastro, logout)
+ * - googleProvider: provedor OAuth do Google
+ * - db: instância do Firestore (banco NoSQL)
+ * 
+ * Todos esses objetos são usados nas funções de autenticação.
+ */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const db = getFirestore(app);
 
-// Criação das variáveis do Formulário de login
+// ===== REFERÊNCIAS DOS ELEMENTOS HTML - FORMULÁRIO DE LOGIN =====
+/**
+ * Busca elementos do formulário de login no DOM.
+ * 
+ * HTML esperado:
+ * <form id="formLogin">
+ *   <input id="email-login" type="email">
+ *   <input id="senha-login" type="password">
+ *   <button type="submit">Entrar</button>
+ * </form>
+ * 
+ * Uso:
+ * loginForm.addEventListener('submit', ...) para capturar envio.
+ */
 const loginForm = document.getElementById("formLogin");
 const emailInput = document.getElementById("email-login");
 const passwordInput = document.getElementById("senha-login");
 
-// Criação das variáveis do Formulário de cadastro
+// ===== REFERÊNCIAS DOS ELEMENTOS HTML - FORMULÁRIO DE CADASTRO =====
+/**
+ * Busca elementos do formulário de cadastro no DOM.
+ * 
+ * Campos obrigatórios:
+ * - nome: nome completo do usuário
+ * - CPF: documento (validado com máscara)
+ * - telefone: com DDD (máscara aplicada)
+ * - data-nasc: data de nascimento (YYYY-MM-DD)
+ * - email: email único (validado pelo Firebase)
+ * - senha: mínimo 6 caracteres (regra Firebase)
+ * 
+ * Validações:
+ * - Front-end: máscaras, campos obrigatórios, formato
+ * - Firebase: email único, senha forte
+ * - Backend: CPF único no MySQL
+ */
 const formCadastro = document.getElementById("formCadastro");
 const nomeInputCadastro = document.getElementById("nome");
 const cpfInputCadastro = document.getElementById("CPF");

@@ -86,7 +86,9 @@ nav a:hover {
     background-color: #000;
   }
 
-  header img {
+  /* No mobile, esconda apenas o logo direto do header,
+     mantendo visíveis os ícones do carrinho e do perfil */
+  header > img {
     display: none !important;
   }
 
@@ -101,7 +103,8 @@ nav a:hover {
     gap: 10px;
   }
 
-  header img {
+  /* Tamanho do logo quando visível em outras quebras */
+  header > img {
     width: 55px;
   }
 }

@@ -27,10 +27,14 @@ header img.logo {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center; /* centraliza conteúdo interno */
+  width: 100%;
+  max-width: 480px; /* evita esticar a barra até a borda */
+  margin: 0 auto; /* centraliza o próprio container */
 }
 
 .search-bar input {
-  width: 0;
+  width: 0; /* escondido até abrir */
   opacity: 0;
   transition: all 0.4s ease;
   padding: 12px 20px 12px 40px;
@@ -41,18 +45,21 @@ header img.logo {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   font-size: 15px;
   outline: none;
+  flex: 1; /* ocupa a largura disponível do container */
+  min-width: 0;
 }
 
 .search-bar input.mostrar {
-  width: 300px;
+  width: 100%; /* acompanha a largura do container */
   opacity: 1;
 }
 
 .search-bar .search-icon,
 .search-bar .fechar {
-  display: none;
+  display: none; /* o JS controla quando mostra */
   position: absolute;
   cursor: pointer;
+  z-index: 2; /* garante que fique sobre o input */
 }
 
 .search-bar .search-icon {
@@ -92,10 +99,18 @@ header img.logo {
 .filtros {
   display: flex;
   justify-content: center;
+  align-items: center; /* centraliza verticalmente os itens */
   flex-wrap: wrap;
   gap: 15px;
   margin-top: 30px;
   padding: 0 20px;
+}
+
+/* Responsivo: limita a largura da barra em telas pequenas */
+@media (max-width: 520px) {
+  .search-bar {
+    max-width: 90vw;
+  }
 }
 
 .filtros button {

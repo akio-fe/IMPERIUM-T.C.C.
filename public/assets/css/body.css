@@ -294,6 +294,31 @@ body {
 
 section {
   margin-top: 5%;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-content {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 20px;
+  justify-content: flex-start;
+}
+
+.section-content-reverse {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+section .secImgEsq,
+section .secImgDir {
+  flex-shrink: 0;
+}
+
+section .produtos-section {
+  flex: 1;
+  max-width: 900px;
 }
 
 /*seções à direita*/
@@ -405,8 +430,10 @@ section {
   }
 
   nav a {
-    font-size: 5px;
-    padding: 5px 8px;
+  /* Em telas menores, para as sections "reversas" (Mais vendidos, Masculino)
+     a imagem deve vir primeiro acima dos produtos */
+  .section-content-reverse {
+    flex-direction: column-reverse !important;
   }
 
   .linkLogin {
@@ -558,20 +585,22 @@ section {
   }
 
   /* ============================ */
-  /* Esconder APENAS as imagens das sections */
-  /* Mantém o espaço/camada da div */
+  /* Mostrar imagens das sections no mobile */
+  /* Mantém dimensionamento fluido e centralizado */
   /* ============================ */
 
   .secImgDir img,
   .secImgEsq img {
-    display: none !important;
+    display: block !important;
+    width: 90% !important;
+    height: auto !important;
+    margin: 0 auto;
   }
 
-  /* Mantém a altura original da div */
+  /* Containers automáticos para acompanhar a imagem */
   .secImgDir,
   .secImgEsq {
-    height: 400px;
-    /* mesma altura que já existe no desktop */
+    height: auto;
     display: flex;
     justify-content: center;
     align-items: center;
