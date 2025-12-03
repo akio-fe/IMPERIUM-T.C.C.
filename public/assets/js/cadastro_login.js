@@ -83,6 +83,8 @@ import {
   setDoc,
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+import { firebaseConfig } from "./firebase-config.js";
+
 // ===== CONFIGURAÇÃO DO FIREBASE =====
 /**
  * Credenciais do projeto Firebase (console.firebase.google.com).
@@ -101,16 +103,6 @@ import {
  * - Segurança real vem de Firebase Rules no Firestore/Storage
  * - Autenticação protege recursos via regras de banco de dados
  */
-const firebaseConfig = {
-  apiKey: "AIzaSyBtblDahBpfrT4CaLl2viS0D2890iJ_RFE",
-  authDomain: "imperium-0001.firebaseapp.com",
-  projectId: "imperium-0001",
-  storageBucket: "imperium-0001.firebasestorage.app",
-  messagingSenderId: "961834611988",
-  appId: "1:961834611988:web:0a2ad6089630324094be01",
-  measurementId: "G-M39V86RLKS",
-};
-
 // ===== INICIALIZAÇÃO DOS SERVIÇOS FIREBASE =====
 /**
  * Instancia serviços Firebase para uso na aplicação.
@@ -172,7 +164,21 @@ const emailInputCadastro = document.getElementById("email");
 const senhaInputCadastro = document.getElementById("senha");
 const senhaconfInput = document.getElementById("confirma_senha");
 
-// Botão de login com Google
+// ===== LISTENERS: BOTÕES DE LOGIN SOCIAL =====
+/**
+ * Configura botões de login com Google.
+ * 
+ * Múltiplos botões (googleButton e googleButton2):
+ * Permite ter botões em diferentes locais da página (ex: topo e rodapé).
+ * Ambos executam a mesma função signInWithGoogle().
+ * 
+ * Fluxo OAuth 2.0:
+ * 1. Usuário clica no botão
+ * 2. Abre popup do Google
+ * 3. Usuário autoriza acesso
+ * 4. Firebase retorna credenciais
+ * 5. Backend recebe token e cria sessão
+ */
 document
   .getElementById("googleButton")
   .addEventListener("click", signInWithGoogle);
@@ -181,71 +187,152 @@ document
   .getElementById("googleButton2")
   .addEventListener("click", signInWithGoogle);
 
-// Evento de submit do formulário de login
-loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    const user = userCredential.user;
-    await processBackendLogin(user);
-  } catch (error) {
-    console.error("Erro de login:", error.code, error.message);
-    let errorMessage = "Ocorreu um erro no login.";
-    switch (error.code) {
-      case "auth/user-not-found":
-        errorMessage = "Nenhum usuário encontrado com este e-mail.";
-        break;
-      case "auth/wrong-password":
-        errorMessage = "Senha incorreta.";
-        break;
-      case "auth/invalid-email":
-        errorMessage = "Formato de e-mail inválido.";
-        break;
-      default:
-        errorMessage = "Erro desconhecido. Por favor, tente novamente.";
-        break;
-    }
-    showPopup(errorMessage, "red"); // Modificado
-  }
-});
+// ===== LISTENER: FORMULÁRIO DE LOGIN =====
+/**
+ * Gerencia envio do formulário de login tradicional (email/senha).
+ * 
+ * Fluxo:
+ * 1. Previne envio padrão do formulário (preventDefault)
+ * 2. Extrai email e senha dos inputs
+ * 3. Autentica no Firebase
+ * 4. Processa login no backend PHP
+ * 5. Redireciona para home ou exibe erro
+ * 
+ * Tratamento de erros Firebase:
+ * - auth/user-not-found: Email não cadastrado
+ * - auth/wrong-password: Senha incorreta
+ * - auth/invalid-email: Formato de email inválido
+ * - Outros: Erro genérico
+ */
+if (loginForm) {
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-// Evento de submit do formulário de cadastro
+    // Coleta dados do formulário
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    try {
+      // Autentica no Firebase
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // Processa login no backend (cria sessão PHP)
+      await processBackendLogin(user);
+    } catch (error) {
+      // Log do erro para debug
+      console.error("Erro de login:", error.code, error.message);
+
+      // ===== MAPEAMENTO DE ERROS FIREBASE =====
+      /**
+       * Converte códigos técnicos do Firebase em mensagens amigáveis.
+       * 
+       * Códigos comuns:
+       * - auth/user-not-found: Conta não existe
+       * - auth/wrong-password: Senha incorreta
+       * - auth/invalid-email: Email malformado
+       * - auth/too-many-requests: Muitas tentativas falhas
+       * - auth/user-disabled: Conta desativada
+       */
+      let errorMessage = "Ocorreu um erro no login.";
+      switch (error.code) {
+        case "auth/user-not-found":
+          errorMessage = "Nenhum usuário encontrado com este e-mail.";
+          break;
+        case "auth/wrong-password":
+          errorMessage = "Senha incorreta.";
+          break;
+        case "auth/invalid-email":
+          errorMessage = "Formato de e-mail inválido.";
+          break;
+        default:
+          errorMessage = "Erro desconhecido. Por favor, tente novamente.";
+          break;
+      }
+      showPopup(errorMessage, "red");
+    }
+  });
+} else {
+  console.warn("Elemento #formLogin não encontrado na página atual.");
+}
+
+// ===== LISTENER: FORMULÁRIO DE CADASTRO =====
+/**
+ * Gerencia envio do formulário de cadastro completo.
+ * 
+ * Fluxo de cadastro (3 etapas):
+ * 1. Criar conta no Firebase Authentication
+ * 2. Salvar dados complementares no Firestore (temporário)
+ * 3. Enviar email de verificação
+ * 4. Após verificação: migrar dados para MySQL
+ * 
+ * Validações:
+ * - Senhas devem coincidir
+ * - Email único (Firebase)
+ * - CPF único (backend PHP)
+ * - Campos obrigatórios: nome, email, senha, CPF
+ * - Campos opcionais: telefone, data de nascimento
+ */
 formCadastro.addEventListener("submit", function (event) {
   event.preventDefault();
 
-  // Pega os valores dentro do event listener
+  // ===== COLETA DE DADOS DO FORMULÁRIO =====
   const email = emailInputCadastro.value.trim();
   const senha = senhaInputCadastro.value;
   const senhaconf = senhaconfInput.value;
   const nome = nomeInputCadastro.value.trim();
   const cpf = cpfInputCadastro.value.trim();
-  const telefone = null;
-  const dataNasc = null;
+  const telefone = null; // Opcional no MVP
+  const dataNasc = null; // Opcional no MVP
 
-  // Verifica se as senhas coincidem
+  // ===== VALIDAÇÃO: CONFIRMAÇÃO DE SENHA =====
+  /**
+   * Verifica se senha e confirmação são idênticas.
+   * 
+   * setCustomValidity:
+   * Define mensagem de validação HTML5 personalizada.
+   * Previne envio do formulário se não for vazia.
+   */
   if (senha !== senhaconf) {
     senhaconfInput.setCustomValidity("As senhas não conferem");
-    showPopup("As senhas não coincidem.", "red"); // Modificado
+    showPopup("As senhas não coincidem.", "red");
     return;
   } else {
-    senhaconfInput.setCustomValidity("");
+    senhaconfInput.setCustomValidity(""); // Remove validação
   }
 
-  // Exibe mensagem de carregamento para o usuário
-  showPopup("Processando cadastro...", "blue"); // Modificado
+  // Feedback visual de loading
+  showPopup("Processando cadastro...", "blue");
 
-  // 1. Criar o usuário no Firebase Authentication
+  // ===== ETAPA 1: CRIAR CONTA NO FIREBASE =====
+  /**
+   * createUserWithEmailAndPassword:
+   * - Valida formato do email
+   * - Verifica se email já existe
+   * - Valida força da senha (mínimo 6 caracteres)
+   * - Cria conta no Firebase Authentication
+   * - Retorna UserCredential com dados do usuário
+   */
   createUserWithEmailAndPassword(auth, email, senha)
     .then((userCredential) => {
       const user = userCredential.user;
 
-      // 2. Salvar dados adicionais no Firestore
+      // ===== ETAPA 2: SALVAR DADOS NO FIRESTORE (TEMPORÁRIO) =====
+      /**
+       * Salva dados complementares no Firestore.
+       * 
+       * Por que Firestore temporário?
+       * - Firebase não armazena nome, CPF, etc nativamente
+       * - MySQL precisa de email verificado para criar registro
+       * - Firestore serve como buffer até verificação
+       * 
+       * Coleção: unverified_users/{uid}
+       * Após verificação: dados migram para MySQL e documento é deletado
+       */
       return setDoc(doc(db, "unverified_users", user.uid), {
         nome: nome,
         cpf: cpf,
@@ -256,7 +343,16 @@ formCadastro.addEventListener("submit", function (event) {
       });
     })
     .then(() => {
-      // 3. Enviar o e-mail de verificação
+      // ===== ETAPA 3: ENVIAR EMAIL DE VERIFICAÇÃO =====
+      /**
+       * sendEmailVerification:
+       * - Envia email com link único para verificação
+       * - Link válido por 1 hora (padrão Firebase)
+       * - Usuário não pode fazer login até verificar
+       * 
+       * Template do email:
+       * Configurado no Firebase Console > Authentication > Templates
+       */
       const user = auth.currentUser;
       if (user) {
         return sendEmailVerification(user);
@@ -265,14 +361,35 @@ formCadastro.addEventListener("submit", function (event) {
       }
     })
     .then(() => {
-      // 4. Exibir mensagem de sucesso
+      // ===== ETAPA 4: SUCESSO - AGUARDAR VERIFICAÇÃO =====
+      /**
+       * Cadastro completo no Firebase.
+       * 
+       * Próximos passos para o usuário:
+       * 1. Abrir email
+       * 2. Clicar no link de verificação
+       * 3. auth-handler.js processa verificação
+       * 4. Dados migram para MySQL
+       * 5. Usuário pode fazer login
+       */
       showPopup(
         "Cadastro realizado com sucesso! Um e-mail de verificação foi enviado. Por favor, verifique sua caixa de entrada para ativar sua conta.",
         "green"
-      ); // Modificado
+      );
       formCadastro.reset();
     })
     .catch((error) => {
+      // ===== TRATAMENTO DE ERROS DO CADASTRO =====
+      /**
+       * Mapeia erros Firebase/Firestore para mensagens amigáveis.
+       * 
+       * Erros comuns:
+       * - auth/email-already-in-use: Email já cadastrado
+       * - auth/weak-password: Senha < 6 caracteres
+       * - auth/invalid-email: Email malformado
+       * - permission-denied: Regras do Firestore bloquearam operação
+       *   (verificar firestore.rules no Firebase Console)
+       */
       const errorCode = error.code;
       let errorMessage =
         "Ocorreu um erro ao cadastrar. Por favor, tente novamente.";
@@ -288,56 +405,154 @@ formCadastro.addEventListener("submit", function (event) {
           "Erro de permissão no Firestore. Verifique suas regras de segurança.";
       }
 
-      showPopup(errorMessage, "red"); // Modificado
+      showPopup(errorMessage, "red");
       console.error(errorCode, error.message);
     });
 });
 
-// Login com Google
+// ===== FUNÇÃO: LOGIN COM GOOGLE (OAUTH 2.0) =====
+/**
+ * Autentica usuário via conta Google.
+ * 
+ * Fluxo OAuth 2.0:
+ * 1. signInWithPopup abre janela popup do Google
+ * 2. Usuário seleciona conta e autoriza permissões
+ * 3. Firebase recebe token OAuth do Google
+ * 4. Firebase cria/autentica usuário automaticamente
+ * 5. Retorna UserCredential com dados do Google
+ * 6. Backend recebe token JWT e cria sessão
+ * 
+ * Vantagens:
+ * - Sem necessidade de senha
+ * - Email já verificado pelo Google
+ * - Processo mais rápido
+ * - Maior segurança (2FA do Google)
+ * 
+ * Dados obtidos do Google:
+ * - Email (user.email)
+ * - Nome (user.displayName)
+ * - Foto (user.photoURL)
+ * - ID único (user.uid)
+ */
 async function signInWithGoogle() {
   try {
+    // Abre popup do Google OAuth
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
+    
+    // Processa login no backend (cria sessão PHP)
     await processBackendLogin(user);
   } catch (error) {
+    /**
+     * Erros comuns:
+     * - auth/popup-closed-by-user: Usuário fechou popup
+     * - auth/popup-blocked: Navegador bloqueou popup
+     * - auth/account-exists-with-different-credential: Email já usado com outro método
+     */
     const errorCode = error.code;
     const errorMessage = error.message;
     console.error("Erro de login com Google:", errorMessage);
-    showPopup("Erro ao fazer login com o Google: " + errorMessage, "red"); // Modificado
+    showPopup("Erro ao fazer login com o Google: " + errorMessage, "red");
   }
 }
 
+// ===== RESOLUÇÃO DINÂMICA DE CAMINHOS =====
+/**
+ * Determina caminho base da pasta /public/ dinamicamente.
+ * 
+ * Por que dinâmico?
+ * Aplicação pode estar em diferentes estruturas:
+ * - Produção: https://imperium.com/
+ * - Desenvolvimento: http://localhost/imperium/
+ * - Testes: http://localhost:8080/projeto/
+ * 
+ * Função busca "/public/" na URL e extrai base.
+ * 
+ * @returns {string} - Caminho da pasta public
+ */
 const resolvePublicRoot = () => {
   const { pathname } = window.location;
   const publicIndex = pathname.indexOf("/public/");
   if (publicIndex === -1) {
-    return "";
+    return ""; // Raiz do servidor
   }
   return `${pathname.slice(0, publicIndex)}/public`;
 };
 
+/**
+ * URLs da aplicação construídas dinamicamente:
+ * - PUBLIC_ROOT: /imperium/public
+ * - PROJECT_ROOT: /imperium
+ * - API_LOGIN_URL: /imperium/public/api/auth/login.php
+ * - HOME_URL: /imperium/index.php
+ */
 const PUBLIC_ROOT = resolvePublicRoot();
 const PROJECT_ROOT = PUBLIC_ROOT.replace(/\/public$/, "");
 const API_LOGIN_URL = `${PUBLIC_ROOT}/api/auth/login.php`;
 const HOME_URL = `${PROJECT_ROOT || ""}/index.php`;
 
-// Função para processar o login no backend
+// ===== FUNÇÃO: PROCESSAR LOGIN NO BACKEND PHP =====
+/**
+ * Envia token JWT do Firebase para backend PHP criar sessão.
+ * 
+ * Arquitetura híbrida (Firebase + PHP):
+ * - Firebase: autenticação e autorização
+ * - PHP/MySQL: dados do usuário e lógica de negócio
+ * - JWT: ponte de comunicação segura
+ * 
+ * Fluxo:
+ * 1. Obtém token JWT do Firebase (user.getIdToken)
+ * 2. Envia token para /api/auth/login.php
+ * 3. Backend valida token com Firebase Admin SDK
+ * 4. Backend cria sessão PHP ($_SESSION['logged_in'])
+ * 5. Backend busca/cria dados do usuário no MySQL
+ * 6. Retorna sucesso + dados do usuário
+ * 7. Frontend redireciona para home
+ * 
+ * @param {Object} user - Usuário autenticado do Firebase
+ */
 async function processBackendLogin(user) {
   try {
+    // ===== OBTER TOKEN JWT DO FIREBASE =====
+    /**
+     * getIdToken() gera token JWT assinado pelo Firebase.
+     * 
+     * Token contém:
+     * - uid: ID único do usuário
+     * - email: email do usuário
+     * - email_verified: se email foi verificado
+     * - exp: data de expiração (1 hora)
+     * 
+     * Backend valida assinatura do token com Firebase Admin SDK.
+     */
     const idToken = await user.getIdToken();
+    
+    // ===== ENVIAR TOKEN PARA BACKEND =====
     const response = await fetch(API_LOGIN_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
+        Authorization: `Bearer ${idToken}`, // Header padrão para JWT
       },
     });
+    
+    // ===== PROCESSAR RESPOSTA =====
+    /**
+     * Lê resposta como texto primeiro para debug.
+     * PHP pode retornar HTML de erro em vez de JSON.
+     */
     const rawResponse = await response.text();
     let result;
 
     try {
       result = JSON.parse(rawResponse);
     } catch (parseError) {
+      /**
+       * JSON inválido indica erro no backend:
+       * - Warning/Notice do PHP
+       * - Fatal error
+       * - HTML de erro 500
+       */
       console.error("Resposta inesperada do backend:", rawResponse);
       showPopup(
         "Resposta inesperada do servidor. Tente novamente em instantes.",
@@ -346,17 +561,37 @@ async function processBackendLogin(user) {
       return;
     }
 
+    // ===== VERIFICAR SUCESSO DO LOGIN =====
     if (response.ok && result.success) {
-      showPopup("Login bem-sucedido! Redirecionando...", "green"); // Modificado
+      /**
+       * Sucesso: sessão PHP criada.
+       * 
+       * Backend fez:
+       * - Validou token JWT
+       * - Criou $_SESSION['logged_in']
+       * - Armazenou dados do usuário na sessão
+       * - Sincronizou com MySQL
+       */
+      showPopup("Login bem-sucedido! Redirecionando...", "green");
       console.log("Login com sucesso:", user);
+      
+      // Aguarda 2 segundos para usuário ver mensagem
       setTimeout(() => {
         window.location.href = HOME_URL;
       }, 2000);
     } else {
-      showPopup(result.message || "Falha ao iniciar sessão.", "red"); // Modificado
+      /**
+       * Falha: token inválido, expirado ou erro no backend.
+       * Usuário precisa tentar novamente.
+       */
+      showPopup(result.message || "Falha ao iniciar sessão.", "red");
     }
   } catch (error) {
+    /**
+     * Erro de rede ou servidor offline.
+     * Fetch lança erro se não conseguir conectar.
+     */
     console.error("Erro ao enviar token para o backend:", error);
-    showPopup("Erro na comunicação com o servidor.", "red"); // Modificado
+    showPopup("Erro na comunicação com o servidor.", "red");
   }
 }

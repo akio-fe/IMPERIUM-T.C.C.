@@ -1,7 +1,50 @@
+<!--
+============================================================
+PÁGINA: Manipulador de Ações de Autenticação do Firebase
+============================================================
+
+Propósito:
+Página de destino para links de email do Firebase.
+Processa ações de autenticação enviadas por email.
+
+Funcionalidades:
+- Verificação de email (mode=verifyEmail)
+- Reset de senha (mode=resetPassword)
+- Recuperação de email (mode=recoverEmail)
+- Redirecionamento automático após processamento
+
+Fluxo de Uso:
+1. Usuário recebe email do Firebase (verificação ou reset)
+2. Clica no link do email
+3. Firebase redireciona para esta página
+4. URL contém parâmetros: ?mode=X&oobCode=Y
+5. JavaScript (auth-handler.js) processa ação
+6. Exibe resultado e redireciona
+
+Parâmetros de URL:
+- mode: tipo de ação (verifyEmail, resetPassword, recoverEmail)
+- oobCode: código único de verificação (one-time use)
+- apiKey: chave da API Firebase (validação)
+- continueUrl: URL de redirecionamento opcional
+
+Exemplo de URL:
+auth.html?mode=verifyEmail&oobCode=ABC123...&apiKey=XYZ
+
+Integração:
+- JavaScript: auth-handler.js (lógica principal)
+- Firebase: Authentication + Firestore
+- Backend: checkout.php (migração de dados)
+
+Notas de Segurança:
+- oobCode é single-use (usado uma vez)
+- Código expira em 1 hora (padrão Firebase)
+- Backend valida token antes de processar
+-->
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
+    <!-- ===== META TAGS ===== -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Autenticação</title>
@@ -9,6 +52,18 @@
 
 <body>
     <main>
+        <!-- ===== CONTAINER DE CONTEÚDO DINÂMICO ===== -->
+        <!--
+        Elementos atualizados por auth-handler.js:
+        - authTitle: título da página (sucesso/erro)
+        - authMessage: mensagem detalhada do resultado
+        - authContent: conteúdo adicional (formulários, etc)
+        
+        Estados possíveis:
+        1. Loading: "Carregando..."
+        2. Sucesso: "Email verificado!" / "Senha redefinida!"
+        3. Erro: "Link inválido" / "Código expirado"
+        -->
         <div>
             <h4 id="authTitle">Carregando...</h4>
             <p id="authMessage"></p>
@@ -17,6 +72,18 @@
 
     </main>
 
+    <!-- ===== SCRIPT PRINCIPAL ===== -->
+    <!--
+    Módulo ES6 (type="module"):
+    Permite uso de import/export e top-level await.
+    
+    auth-handler.js:
+    - Lê parâmetros da URL
+    - Identifica modo de ação
+    - Chama funções Firebase apropriadas
+    - Atualiza DOM com resultado
+    - Redireciona após conclusão
+    -->
     <script type="module" src="../../assets/js/auth-handler.js"></script>
 </body>
 

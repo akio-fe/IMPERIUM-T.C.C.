@@ -1,12 +1,50 @@
 <?php
-// index.php
+/**
+ * ============================================================
+ * PÁGINA INICIAL (Home) - Catálogo e Vitrines
+ * ============================================================
+ * 
+ * Arquivo: index.php (raiz do projeto)
+ * Propósito: Exibir a página inicial com banners, vitrines e
+ *            navegação principal do site IMPERIUM.
+ * 
+ * Funcionalidades:
+ * - Cabeçalho dinâmico (login vs. usuário autenticado)
+ * - Navegação por categorias (Home, Camisas, Calças, etc.)
+ * - Três vitrines dinâmicas: Promoções, Mais vendidos, Recomendados
+ * - Seções por gênero: Masculino e Feminino (itens aleatórios)
+ * - Sanitização e formatação de dados antes de renderizar (HTML e preço)
+ * 
+ * Fluxo de Dados:
+ * 1) Inicia sessão e carrega bootstrap/app.php (helpers, DB, Composer)
+ * 2) Monta navegação (links com `url_path` e `asset_path`)
+ * 3) Consulta produtos (JOIN com categoria) e distribui vitrines
+ * 4) Renderiza HTML com cards linkando para `produto.php?id=...`
+ * 
+ * Segurança:
+ * - Evita XSS com `htmlspecialchars` nos nomes dos produtos
+ * - Usa `number_format` para padronização de moeda brasileira
+ * - Não expõe dados sensíveis em HTML
+ * 
+ * Dependências:
+ * - `bootstrap/app.php`: conexão `$conn`, helpers `asset_path`, `url_path`
+ * - Tabelas: `roupa`, `catroupa`
+ */
+
+// Inicia sessão para controle de autenticação no header
 session_start();
+// Carrega bootstrap principal (helpers, conexão, Composer autoload)
 require_once __DIR__ . '/bootstrap/app.php';
 
+// ===== Navegação e Filtros =====
+// Filtro atual (usado na página de catálogo vinculada)
 $filtro = isset($_GET['filtro']) ? $_GET['filtro'] : 'todos';
+// Classe CSS opcional para destacar item ativo
 $classActive = '';
+// Whitelist de filtros permitidos para evitar query strings inválidas
 $filtrosPermitidos = ['todos', 'calcados', 'calcas', 'blusas', 'camisas', 'conjuntos', 'outros', 'acessorios'];
 
+// Validação do filtro (fallback para 'todos' se inválido)
 if (!in_array($filtro, $filtrosPermitidos, true)) {
     $filtro = 'todos';
 }
@@ -19,6 +57,7 @@ $categoriaSlugMap = [
     6 => 'acessorios',
 ];
 
+// Itens do menu principal
 $navItems = [
     'todos' => 'Todos',
     'camisas' => 'Camisas',
@@ -27,15 +66,18 @@ $navItems = [
     'acessorios' => 'Acessórios',
 ];
 
+// Constrói HTML dos links de navegação (Home + categorias)
 $navLinksHtml = "<a href='" . url_path('index.php') . "' class='active'>Home</a>";
 foreach ($navItems as $slug => $label) {
     $shopUrl = url_path('public/pages/shop/index.php') . "?filtro={$slug}";
     $navLinksHtml .= "<a href='{$shopUrl}' data-tipo='{$slug}'>{$label}</a>";
 }
 
+// ===== Consulta de produtos para catálogo base =====
 $produtos = [];
 $erroProdutos = '';
 
+// Consulta completa com JOIN de categoria, ordenando por categoria e nome
 $sql = "SELECT r.RoupaId, r.RoupaNome, r.RoupaModelUrl, r.RoupaImgUrl, r.RoupaValor, r.CatRId, c.CatRTipo, c.CatRSessao\n        FROM roupa r\n        INNER JOIN catroupa c ON c.CatRId = r.CatRId\n        ORDER BY r.CatRId, r.RoupaNome";
 
 if ($resultado = $conn->query($sql)) {
@@ -48,6 +90,7 @@ if ($resultado = $conn->query($sql)) {
     $erroProdutos = 'Não foi possível carregar os produtos. Tente novamente em instantes.';
 }
 
+// ===== Distribuição de vitrines (aleatórias) =====
 // Produtos aleatórios para promoções, mais vendidos e recomendados
 $produtosAleatorios = [];
 $sqlAleatorio = "SELECT r.RoupaId, r.RoupaNome, r.RoupaImgUrl, r.RoupaValor 
@@ -61,7 +104,7 @@ if ($resultado = $conn->query($sqlAleatorio)) {
     $resultado->free();
 }
 
-// Produtos masculinos
+// Produtos masculinos (3 aleatórios)
 $produtosMasculinos = [];
 $sqlMasculino = "SELECT r.RoupaId, r.RoupaNome, r.RoupaImgUrl, r.RoupaValor 
                  FROM roupa r 
@@ -76,7 +119,7 @@ if ($resultado = $conn->query($sqlMasculino)) {
     $resultado->free();
 }
 
-// Produtos femininos
+// Produtos femininos (3 aleatórios)
 $produtosFemininos = [];
 $sqlFeminino = "SELECT r.RoupaId, r.RoupaNome, r.RoupaImgUrl, r.RoupaValor 
                 FROM roupa r 
@@ -91,6 +134,7 @@ if ($resultado = $conn->query($sqlFeminino)) {
     $resultado->free();
 }
 
+// ===== Cabeçalho dinâmico (autenticado vs. visitante) =====
 $logoSrc = asset_path('img/catalog/aguia.png');
 $cartIcon = asset_path('img/catalog/carrin.png');
 $profileIcon = asset_path('img/catalog/perfilzin.png');

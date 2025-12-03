@@ -1,48 +1,171 @@
+<!--
+============================================================
+PÁGINA: Login e Cadastro de Usuários
+============================================================
+
+Propósito:
+Interface unificada para login e cadastro de usuários.
+Suparta autenticação tradicional (email/senha) e social (Google).
+
+Funcionalidades:
+- Login com email e senha
+- Cadastro de novo usuário
+- Login social com Google OAuth
+- Validação de formulários
+- Máscaras de entrada (CPF)
+- Animação de transição entre formulários
+- Sistema de popups para feedback
+
+Arquitetura:
+- Design responsivo (mobile-first)
+- Animação de slide entre login/cadastro
+- Firebase Authentication (client-side)
+- Backend PHP (session management)
+
+Dependências:
+- Firebase SDK 9.6.1 (modular)
+- jQuery 3.0.0 (máscaras)
+- jQuery Mask Plugin 1.14.11
+- BoxIcons 3.0.5 (ícones)
+
+Fluxo de Login:
+1. Usuário preenche email/senha
+2. JavaScript autentica no Firebase
+3. Firebase retorna token JWT
+4. Token enviado para backend PHP
+5. Backend cria sessão e redireciona
+
+Fluxo de Cadastro:
+1. Usuário preenche formulário
+2. Validação de senhas coincidentes
+3. Firebase cria conta
+4. Dados salvos no Firestore (temporário)
+5. Email de verificação enviado
+6. Após verificação: dados migram para MySQL
+
+Estilos CSS:
+- loginstyle.css: layout principal e animações
+- popups.css: sistema de notificações
+- googleBtn.css: estilização do botão Google
+
+Scripts JavaScript:
+- script.js: animação de flip do card
+- login.js: toggle entre formulários
+- form-mask.js: máscaras de CPF
+- popups.js: sistema de notificações
+- cadastro_login.js: lógica de autenticação Firebase
+-->
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
+    <!-- ===== META TAGS ===== -->
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE-edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login/Cadastro IMPERIUM</title>
 
+    <!-- ===== ÍCONES BOXICONS ===== -->
+    <!-- Biblioteca de ícones para inputs (user, lock, envelope, etc) -->
     <link href='https://cdn.boxicons.com/3.0.5/fonts/basic/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- ===== FAVICON ===== -->
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    
+    <!-- ===== FOLHAS DE ESTILO ===== -->
     <link rel="stylesheet" href="../../assets/css/loginstyle.css">
     <link rel="stylesheet" href="../../assets/css/popups.css">
     <link rel="stylesheet" href="../../assets/css/googleBtn.css">
 
+    <!-- ===== SCRIPT DE ANIMAÇÃO ===== -->
+    <!--
+    script.js:
+    Adiciona efeito de flip 3D ao card de autenticação.
+    Carregado com defer para execução após parse do HTML.
+    -->
     <script src="../../assets/js/script.js" defer></script>
 </head>
 
 <body>
 
+    <!-- ===== BOTÃO DE RETORNO À HOME ===== -->
+    <!--
+    Botão fixo no canto superior.
+    Permite usuário voltar à página inicial sem fazer login.
+    
+    Imagem: STICKEN.png (logo IMPERIUM)
+    Comportamento: Redireciona para index.php
+    -->
     <a href="../../../index.php">
         <button class="corner-btn">
             <img src="../../assets/img/ui/STICKEN.png" alt="home">
         </button>
     </a>
 
+    <!-- ===== CONTAINER PRINCIPAL ===== -->
+    <!--
+    Layout com dois formulários sobrepostos:
+    - form-box login: visível por padrão
+    - form-box register: oculto inicialmente
+    
+    Transição controlada por login.js:
+    Botões "Registre-se" e "Fazer Login" alternam visibilidade.
+    -->
     <div class="container">
+        <!-- ===== FORMULÁRIO DE LOGIN ===== -->
+        <!--
+        Formulário tradicional de autenticação.
+        
+        Campos obrigatórios:
+        - Email: validação HTML5 (type="email")
+        - Senha: mínimo 6 caracteres (validação Firebase)
+        
+        Validação:
+        - HTML5: required, type="email"
+        - Firebase: formato de email, senha forte
+        
+        Envio:
+        - Evento 'submit' capturado por cadastro_login.js
+        - preventDefault() evita reload da página
+        - Firebase autentica e retorna token
+        - Token enviado para backend PHP
+        -->
         <div class="form-box login">
             <form id="formLogin" autocomplete="on">
                 <h1>Login</h1>
+                
+                <!-- Input de Email -->
                 <div class="input-box">
                     <input type="email" id="email-login" name="email" placeholder="Email de login" required>
                     <i class='bx  bx-user'></i>
                 </div>
 
+                <!-- Input de Senha -->
                 <div class="input-box">
                     <input type="password" id="senha-login" name="senha" placeholder="Senha da conta" required>
                     <i class='bx  bx-lock'></i>
                 </div>
 
+                <!-- Link de Recuperação de Senha -->
                 <div class="forgot-link">
-                    <a href="#">Esqueceu a senha?</a>
+                    <a href="./esqueci_senha.html">Esqueceu a senha?</a>
                 </div>
+                
+                <!-- Botão de Envio -->
                 <button type="submit" class="btn">Login</button>
+                
+                <!-- Divisor -->
                 <p>Ou faça login com o Google</p>
+                
+                <!-- Botão de Login Social (Google OAuth) -->
+                <!--
+                Login com Google:
+                - type="button": não envia formulário
+                - Listener adicionado por cadastro_login.js
+                - Abre popup OAuth do Google
+                - Retorna dados do perfil Google
+                - Email já verificado automaticamente
+                -->
                 <button type="button" id="googleButton" class="btn google-btn">
                     <span class="google-icon" aria-hidden="true">
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" width="18" height="18" loading="lazy">
@@ -52,29 +175,76 @@
             </form>
         </div>
 
+        <!-- ===== FORMULÁRIO DE CADASTRO ===== -->
+        <!--
+        Formulário de registro de novo usuário.
+        
+        Campos obrigatórios:
+        - Nome completo
+        - Email (único no Firebase)
+        - CPF (único no MySQL)
+        - Senha (mínimo 6 caracteres)
+        - Confirmação de senha
+        
+        Campos opcionais (MVP):
+        - Telefone: definido como null
+        - Data de nascimento: definido como null
+        
+        Máscaras aplicadas (form-mask.js):
+        - CPF: 000.000.000-00 (jQuery Mask Plugin)
+        
+        Validações:
+        - HTML5: required, type="email"
+        - JavaScript: senhas coincidentes
+        - Firebase: email único, senha forte
+        - Backend: CPF único no MySQL
+        
+        Fluxo de cadastro:
+        1. Validação de senhas coincidentes (client-side)
+        2. Criação de conta no Firebase Authentication
+        3. Salvamento de dados no Firestore (temporário)
+        4. Envio de email de verificação
+        5. Após verificação: migração de dados para MySQL
+        -->
         <div class="form-box register">
             <form id="formCadastro" autocomplete="on">
                 <h1 class="tittleSign">Registre-se</h1>
+                
+                <!-- Input de Nome Completo -->
                 <div class="input-box reg">
                     <input type="text" id="nome" name="nome" placeholder="Meu nome completo" required>
                     <i class='bx  bx-user'></i>
                 </div>
                 
+                <!-- Input de Email -->
                 <div class="input-box reg">
                     <input type="email" id="email" name="email" placeholder="meuemail@gmail.com" required>
                     <i class='bx  bx-envelope-alt'></i>
                 </div>
 
+                <!-- Input de CPF (com máscara) -->
+                <!--
+                Máscara aplicada por form-mask.js:
+                jQuery Mask Plugin formata automaticamente.
+                Exemplo: usuário digita "12345678900" → exibe "123.456.789-00"
+                -->
                 <div class="input-box reg">
                     <input type="text" id="CPF" name="cpf" placeholder="xxx.xxx.xxx-00" required>
                     <i class='bx  bx-user-id-card'></i>
                 </div>
 
+                <!-- Input de Senha -->
                 <div class="input-box reg">
                     <input type="password" id="senha" name="senha" placeholder="Senha" required>
                     <i class='bx  bx-lock'></i>
                 </div>
 
+                <!-- Input de Confirmação de Senha -->
+                <!--
+                Validação customizada (setCustomValidity):
+                JavaScript compara com campo "senha".
+                Se diferente: impede envio do formulário.
+                -->
                 <div class="input-box reg">
                     <input type="password" id="confirma_senha" name="confirma_senha" placeholder="Confirme sua senha" required>
                     <i class='bx  bx-lock'></i>
@@ -91,12 +261,33 @@
             </form>
         </div>
 
+        <!-- ===== PAINEL DE ALTERNÂNCIA (TOGGLE BOX) ===== -->
+        <!--
+        Painel lateral com animação de slide.
+        
+        Comportamento:
+        - Por padrão: mostra toggle-right (convida a fazer login)
+        - Ao clicar "Registre-se": slide para esquerda, mostra toggle-left
+        - Ao clicar "Fazer Login": slide para direita, mostra toggle-right
+        
+        Animação:
+        - Controlada por login.js
+        - Adiciona/remove classes CSS para transições
+        - Usa transform: translateX() para movimento suave
+        
+        Acessibilidade:
+        - Botões descritivos
+        - Textos claros sobre ação
+        -->
         <div class="toggle-box">
+            <!-- Painel Esquerdo (visível quando no modo cadastro) -->
             <div class="toggle-panel toggle-left">
                 <h1>Olá de novo!</h1>
                 <p>Não tem uma conta?</p>
                 <button class="btn register-btn">Registre-se</button>
             </div>
+            
+            <!-- Painel Direito (visível quando no modo login) -->
             <div class="toggle-panel toggle-right">
                 <h1>Seja bem-vindo!</h1>
                 <p>Já tem uma conta?</p>
@@ -104,7 +295,31 @@
             </div>
         </div>
 
-            <!-- Popup de mensagem -->
+            <!-- ===== SISTEMA DE POPUPS ===== -->
+            <!--
+            Modal para exibir mensagens de feedback ao usuário.
+            
+            Usado para:
+            - Sucesso: "Cadastro realizado!"
+            - Erro: "Email já está em uso"
+            - Avisos: "Senhas não coincidem"
+            - Loading: "Processando cadastro..."
+            
+            Controle:
+            - popups.js: funções showPopup(message, color) e hidePopup()
+            - Cores: green (sucesso), red (erro), blue (info)
+            
+            Elementos:
+            - popup-overlay: fundo escuro semi-transparente
+            - popup-card: card com mensagem
+            - popup-close: botão X para fechar
+            - popup-message: texto dinâmico da mensagem
+            
+            Fechamento:
+            - Clique no X
+            - Clique fora do card (overlay)
+            - Automático após alguns segundos (opcional)
+            -->
             <div id="popup-overlay" class="hidden">
                 <div id="popup-card">
                     <span id="popup-close">&times;</span>
@@ -112,12 +327,77 @@
                 </div>
             </div>
 
-            <!-- JQuery e JS -->
+            <!-- ===== SCRIPTS JAVASCRIPT ===== -->
+            <!--
+            Ordem de carregamento importante:
+            1. login.js: animação de toggle (puro JS)
+            2. jQuery: biblioteca base para máscaras
+            3. jQuery Mask Plugin: máscaras de input
+            4. form-mask.js: configuração das máscaras
+            5. popups.js: sistema de notificações
+            6. cadastro_login.js: lógica de autenticação Firebase (módulo ES6)
+            -->
+            
+            <!-- Animação de Toggle entre Formulários -->
+            <!--
+            login.js:
+            - Adiciona listeners aos botões register-btn e login-btn
+            - Alterna classes CSS para animação de slide
+            - Puro JavaScript (sem dependências)
+            -->
             <script src="../../assets/js/login.js"></script>
+            
+            <!-- jQuery Core (v3.0.0) -->
+            <!--
+            Biblioteca JavaScript para:
+            - Manipulação do DOM simplificada
+            - Necessária para jQuery Mask Plugin
+            -->
             <script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+            
+            <!-- jQuery Mask Plugin (v1.14.11) -->
+            <!--
+            Plugin para máscaras de input:
+            - Formata CPF: 000.000.000-00
+            - Formata telefone: (00) 00000-0000
+            - Formata CEP: 00000-000
+            
+            Uso:
+            $('#CPF').mask('000.000.000-00');
+            -->
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.11/jquery.mask.min.js"></script>
+            
+            <!-- Configuração de Máscaras -->
+            <!--
+            form-mask.js:
+            - Aplica máscaras aos inputs de CPF
+            - Aguarda carregamento do DOM
+            -->
             <script src="../../assets/js/form-mask.js"></script>
+            
+            <!-- Sistema de Popups -->
+            <!--
+            popups.js:
+            - Funções showPopup(message, color) e hidePopup()
+            - Gerencia modal de mensagens
+            - Listeners para fechar popup
+            -->
             <script src="../../assets/js/popups.js"></script>
+            
+            <!-- Lógica de Autenticação Firebase (Módulo ES6) -->
+            <!--
+            cadastro_login.js:
+            - Importa Firebase SDK modular
+            - Gerencia login e cadastro
+            - Integração com backend PHP
+            - Validação de formulários
+            - OAuth com Google
+            
+            type="module":
+            - Permite import/export ES6
+            - Executa em strict mode
+            - Variáveis não vazam para escopo global
+            -->
             <script type="module" src="../../assets/js/cadastro_login.js"></script>
 </body>
 

@@ -1,11 +1,93 @@
-// Imports do Three.js (usando versão estável)
+/**
+ * ============================================================
+ * MÓDULO: Visualização de Produto com 3D
+ * ============================================================
+ * 
+ * Propósito:
+ * Interface completa da página de produto com visualizador 3D.
+ * Gerencia visualização interativa, favoritos e adição ao carrinho.
+ * 
+ * Funcionalidades Principais:
+ * - Visualizador 3D com Three.js (WebGL)
+ * - Rotação e zoom do modelo 3D
+ * - Sistema de favoritos (integração com API)
+ * - Adição ao carrinho (localStorage)
+ * - Seleção de tamanhos
+ * - Alternância de visualização (conjuntos: superior/inferior/completo)
+ * - Busca de produtos (barra de pesquisa)
+ * 
+ * Arquitetura 3D:
+ * - Three.js 0.129.0 (WebGL rendering)
+ * - GLTFLoader (carregamento de modelos .gltf/.glb)
+ * - OrbitControls (controle de câmera)
+ * - Sistema de fallback para erros (placeholder estático)
+ * - Proteção contra crash de GPU (ImageBitmap disable)
+ * 
+ * Estrutura de Dados do Produto:
+ * window.produto = {
+ *   id: 1,
+ *   nome: "Camiseta Streetwear",
+ *   preco: 89.90,
+ *   imagem: "/storage/models/...",
+ *   modelPath: "/storage/models/produto.glb",
+ *   categoriaId: 2, // 1=Calçados, 2=Camisetas, 5/11=Conjuntos
+ *   favorito: true,
+ *   isAuthenticated: true
+ * }
+ * 
+ * Estrutura HTML Esperada:
+ * <div class="container-produto" data-produto='{"id":1,...}'>
+ *   <div id="container3D"><!-- Canvas Three.js injetado aqui --></div>
+ *   <div class="tamanhos"><!-- Botões de tamanho --></div>
+ *   <input type="checkbox" id="btn-favoritar">
+ *   <button id="btn-add-cart">Adicionar ao Carrinho</button>
+ *   <div class="btn-parte" data-parte="superior">Superior</div>
+ *   <div class="btn-parte" data-parte="inferior">Inferior</div>
+ *   <div class="btn-parte" data-parte="completo">Completo</div>
+ * </div>
+ * 
+ * Tecnologias:
+ * - Three.js 0.129.0 (3D rendering)
+ * - GLTFLoader (formato de modelo 3D padrão)
+ * - OrbitControls (interação com câmera)
+ * - Fetch API (favoritos)
+ * - LocalStorage (carrinho)
+ * 
+ * Segurança:
+ * - Sanitização de URLs de modelos
+ * - Validação de categoria para conjuntos
+ * - Proteção contra erros de GPU (WebGL out of memory)
+ * - Sistema de cooldown após crashes
+ */
+
+// ===== IMPORTAÇÕES THREE.JS =====
+/**
+ * Bibliotecas WebGL para renderização 3D.
+ * 
+ * Componentes:
+ * - THREE: namespace principal (Scene, Camera, Renderer, etc)
+ * - GLTFLoader: carregador de modelos glTF/GLB (formato padrão web)
+ * - OrbitControls: controle de câmera orbital (rotação, zoom, pan)
+ * 
+ * CDN: Skypack (ESM compatível)
+ * Versão: 0.129.0 (estável)
+ */
 import * as THREE from 'https://cdn.skypack.dev/three@0.129.0';
 import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js';
 
-// Torna THREE disponível globalmente para compatibilidade
+/**
+ * Expõe THREE globalmente para compatibilidade com scripts legados.
+ * Alguns plugins podem esperar window.THREE disponível.
+ */
 window.THREE = THREE;
 
+// ===== RESOLUÇÃO DE CAMINHOS =====
+/**
+ * Determina caminho base da pasta /public/ dinamicamente.
+ * 
+ * @returns {string} - Caminho da pasta public
+ */
 const resolvePublicRoot = () => {
   const { pathname } = window.location;
   const publicIndex = pathname.indexOf("/public/");
@@ -15,21 +97,59 @@ const resolvePublicRoot = () => {
   return `${pathname.slice(0, publicIndex)}/public`;
 };
 
+/**
+ * Constantes da aplicação:
+ * - PUBLIC_ROOT: base da pasta public (/imperium/public)
+ * - CARRINHO_KEY: chave do localStorage para carrinho
+ * - FAVORITOS_API_URL: endpoint para gerenciar favoritos
+ * - LOGIN_PAGE: página de login/cadastro
+ * - LOGIN_POPUP_ID: ID do modal de login
+ */
 const PUBLIC_ROOT = resolvePublicRoot();
 const CARRINHO_KEY = "carrinho";
 const FAVORITOS_API_URL = `${PUBLIC_ROOT}/api/favoritos.php`;
 const LOGIN_PAGE = `${PUBLIC_ROOT}/pages/auth/cadastro_login.html`;
 const LOGIN_POPUP_ID = "login-required-popup";
 
-// Variável global para armazenar o modelo 3D atual
+// ===== VARIÁVEL GLOBAL: MODELO 3D =====
+/**
+ * Armazena referência ao modelo 3D carregado.
+ * 
+ * Usado para:
+ * - Alternância entre partes de conjuntos (superior/inferior/completo)
+ * - Limpeza de recursos ao trocar modelos
+ * - Prevenção de vazamento de memória
+ * 
+ * Tipo: THREE.Object3D | null
+ */
 let currentModel = null;
 
+// ===== FUNÇÃO: MODAL DE LOGIN =====
+/**
+ * Factory function (IIFE) que cria modal de login sob demanda.
+ * 
+ * Padrão Singleton:
+ * - Cria modal apenas uma vez
+ * - Retorna referência em chamadas subsequentes
+ * 
+ * Uso:
+ * const popup = ensureLoginPopup();
+ * popup.classList.remove('hidden'); // Exibe modal
+ * 
+ * Estilo injetado dinamicamente via <style>.
+ * Modal é overlay fullscreen com card centralizado.
+ * 
+ * @returns {HTMLElement} - Elemento do modal
+ */
 const ensureLoginPopup = (() => {
   let created = false;
   return () => {
+    // Retorna modal existente se já foi criado
     if (created) {
       return document.getElementById(LOGIN_POPUP_ID);
     }
+    
+    // Cria estilos CSS do modal
     const style = document.createElement("style");
     style.textContent = `
       #${LOGIN_POPUP_ID} {
@@ -115,6 +235,16 @@ const ensureLoginPopup = (() => {
     `;
     document.head.appendChild(style);
 
+    // ===== CRIAÇÃO DO MODAL HTML =====
+    /**
+     * Estrutura do modal:
+     * - Overlay escuro (rgba backdrop)
+     * - Card centralizado com:
+     *   - Botão fechar (X)
+     *   - Título
+     *   - Mensagem explicativa
+     *   - Ações: "Agora não" e "Fazer login"
+     */
     const overlay = document.createElement("div");
     overlay.id = LOGIN_POPUP_ID;
     overlay.className = "hidden";
@@ -132,6 +262,13 @@ const ensureLoginPopup = (() => {
       </div>`;
     document.body.appendChild(overlay);
 
+    // ===== LISTENERS DO MODAL =====
+    /**
+     * Três formas de fechar:
+     * 1. Clique fora do card (no overlay)
+     * 2. Botão X (close)
+     * 3. Botão "Agora não"
+     */
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) {
         overlay.classList.add("hidden");
@@ -149,11 +286,28 @@ const ensureLoginPopup = (() => {
   };
 })();
 
+/**
+ * Exibe modal de login.
+ * Wrapper simplificado para ensureLoginPopup().
+ */
 const showLoginPopup = () => {
   const overlay = ensureLoginPopup();
   overlay.classList.remove("hidden");
 };
 
+// ===== FUNÇÃO: PARSEAR DADOS DO PRODUTO =====
+/**
+ * Extrai dados do produto do atributo data-produto no HTML.
+ * 
+ * HTML esperado:
+ * <div class="container-produto" data-produto='{"id":1,"nome":"...",...}'>
+ * 
+ * Dados injetados pelo PHP:
+ * $produtoJson = json_encode($produto);
+ * echo "<div data-produto='{$produtoJson}'>";
+ * 
+ * @returns {Object|null} - Dados do produto ou null se inválido
+ */
 const parseProdutoData = () => {
   const container = document.querySelector(".container-produto");
   if (!container || !container.dataset.produto) {
@@ -167,6 +321,24 @@ const parseProdutoData = () => {
   }
 };
 
+// ===== FUNÇÃO: INICIALIZAR BARRA DE BUSCA =====
+/**
+ * Configura animação de expansão da barra de pesquisa.
+ * 
+ * Comportamento:
+ * - Clique na lupa: expande input de busca
+ * - Clique no X: colapsa e limpa input
+ * 
+ * HTML esperado:
+ * <div class="search-bar">
+ *   <input type="text">
+ *   <span class="search-icon">🔍</span>
+ *   <span class="fechar">×</span>
+ * </div>
+ * <div class="icons">
+ *   <span class="pesquisar">🔍</span>
+ * </div>
+ */
 const initSearchBar = () => {
   const input = document.querySelector(".search-bar input");
   const fechar = document.querySelector(".search-bar .fechar");
@@ -177,6 +349,7 @@ const initSearchBar = () => {
     return;
   }
 
+  // Expandir barra ao clicar na lupa
   lupa.addEventListener("click", () => {
     input.classList.add("mostrar");
     fechar.style.display = "inline-block";
@@ -185,6 +358,7 @@ const initSearchBar = () => {
     input.focus();
   });
 
+  // Colapsar e limpar ao clicar no X
   fechar.addEventListener("click", () => {
     input.classList.remove("mostrar");
     fechar.style.display = "none";
@@ -194,6 +368,25 @@ const initSearchBar = () => {
   });
 };
 
+// ===== FUNÇÃO: INICIALIZAR SELETOR DE TAMANHOS =====
+/**
+ * Renderiza botões de tamanho baseado na categoria do produto.
+ * 
+ * Categorias:
+ * - 1 (Calçados): tamanhos numéricos (38-44)
+ * - Outros: tamanhos alfabéticos (PP, P, M, G, GG, XGG)
+ * 
+ * HTML gerado:
+ * <div class="tamanhos">
+ *   <button class="tamanho-btn" data-tamanho="M">M</button>
+ *   ...
+ * </div>
+ * 
+ * Comportamento:
+ * Apenas um tamanho pode ser selecionado por vez (classe 'selected').
+ * 
+ * @param {Object} produto - Dados do produto com categoriaId
+ */
 const initTamanhos = (produto) => {
   const container = document.querySelector(".tamanhos");
   if (!container) {
@@ -224,6 +417,13 @@ const initTamanhos = (produto) => {
   });
 };
 
+// ===== FUNÇÕES DE LOCALSTORAGE =====
+/**
+ * Lê dados do localStorage com tratamento de erro.
+ * 
+ * @param {string} key - Chave do localStorage
+ * @returns {Array} - Array parseado ou [] se erro
+ */
 const readStorage = (key) => {
   try {
     return JSON.parse(localStorage.getItem(key)) || [];
@@ -232,10 +432,28 @@ const readStorage = (key) => {
   }
 };
 
+/**
+ * Salva dados no localStorage como JSON.
+ * 
+ * @param {string} key - Chave do localStorage
+ * @param {*} value - Valor a serializar (geralmente Array ou Object)
+ */
 const writeStorage = (key, value) => {
   localStorage.setItem(key, JSON.stringify(value));
 };
 
+// ===== FUNÇÃO: PARSEAR RESPOSTA DA API =====
+/**
+ * Converte resposta HTTP em objeto JSON com tratamento de erros.
+ * 
+ * Tratamento:
+ * - Se JSON inválido: retorna null
+ * - Se resposta não-OK (4xx, 5xx): lança erro com status e mensagem
+ * 
+ * @param {Response} response - Resposta do fetch
+ * @returns {Promise<Object>} - Payload JSON
+ * @throws {Error} - Com propriedade status se resposta não-OK
+ */
 const parseApiResponse = async (response) => {
   let payload = null;
   try {
@@ -252,6 +470,21 @@ const parseApiResponse = async (response) => {
   return payload;
 };
 
+// ===== FUNÇÃO: ATUALIZAR FAVORITO =====
+/**
+ * Adiciona ou remove produto dos favoritos via API.
+ * 
+ * Método HTTP:
+ * - POST: adiciona favorito (shouldFavorite=true)
+ * - DELETE: remove favorito (shouldFavorite=false)
+ * 
+ * Endpoint: /api/favoritos.php
+ * Body: {"produtoId": 123}
+ * 
+ * @param {number} produtoId - ID do produto
+ * @param {boolean} shouldFavorite - True para adicionar, false para remover
+ * @returns {Promise<Object>} - Resposta da API
+ */
 const updateFavorite = async (produtoId, shouldFavorite) => {
   const response = await fetch(FAVORITOS_API_URL, {
     method: shouldFavorite ? "POST" : "DELETE",
@@ -264,8 +497,26 @@ const updateFavorite = async (produtoId, shouldFavorite) => {
   return parseApiResponse(response);
 };
 
+// ===== SISTEMA DE PROTEÇÃO: ESTABILIDADE DO VIEWER =====
+/**
+ * Previne loops infinitos de crashes do visualizador 3D.
+ * 
+ * Mecanismo:
+ * - Após erro crítico (out of memory, context lost), ativa cooldown
+ * - Durante cooldown (5 minutos), viewer não tenta carregar
+ * - Exibe placeholder estático no lugar
+ * 
+ * Uso:
+ * if (viewerStabilityGuard.isDisabled()) {
+ *   // Exibir placeholder
+ *   return;
+ * }
+ * 
+ * Em caso de erro:
+ * viewerStabilityGuard.triggerCooldown();
+ */
 const viewerStabilityGuard = (() => {
-  const COOLDOWN_MS = 5 * 60 * 1000;
+  const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutos
   let disabledUntil = 0;
   return {
     isDisabled() {
@@ -277,6 +528,29 @@ const viewerStabilityGuard = (() => {
   };
 })();
 
+// ===== SISTEMA DE PROTEÇÃO: IMAGE BITMAP =====
+/**
+ * Desabilita temporariamente window.createImageBitmap.
+ * 
+ * Contexto:
+ * GLTFLoader do Three.js tenta usar ImageBitmap para carregar texturas.
+ * Em GPUs limitadas, isso causa erro "could not be allocated".
+ * 
+ * Solução:
+ * Desabilitar ImageBitmap força Three.js a usar fallback (HTMLImageElement).
+ * 
+ * Sistema de lock:
+ * - Múltiplas chamadas incrementam contador
+ * - Função retorna callback de release
+ * - ImageBitmap é restaurado quando lockCount chega a 0
+ * 
+ * Uso:
+ * const release = imageBitmapToggle.disable();
+ * // ... carrega modelo 3D ...
+ * release(); // Restaura ImageBitmap
+ * 
+ * @returns {Function} - Callback para restaurar createImageBitmap
+ */
 const imageBitmapToggle = (() => {
   let lockCount = 0;
   let originalCreateImageBitmap = null;
@@ -291,6 +565,7 @@ const imageBitmapToggle = (() => {
       ) {
         return () => {};
       }
+      // Salva referência original e desabilita
       if (!lockCount) {
         originalCreateImageBitmap =
           originalCreateImageBitmap || window.createImageBitmap || null;
@@ -299,11 +574,14 @@ const imageBitmapToggle = (() => {
         }
       }
       lockCount += 1;
+      
+      // Retorna função de release
       return () => {
         if (!lockCount) {
           return;
         }
         lockCount -= 1;
+        // Restaura quando todas as locks forem liberadas
         if (!lockCount && originalCreateImageBitmap) {
           window.createImageBitmap = originalCreateImageBitmap;
           originalCreateImageBitmap = null;
@@ -313,24 +591,66 @@ const imageBitmapToggle = (() => {
   };
 })();
 
+// ===== FUNÇÕES DE DETECÇÃO DE ERROS =====
+/**
+ * Verifica se erro está relacionado a ImageBitmap.
+ * Indica que deve tentar novamente com ImageBitmap desabilitado.
+ * 
+ * @param {Error} error - Erro capturado
+ * @returns {boolean} - True se for erro de ImageBitmap
+ */
 const shouldRetryWithoutImageBitmap = (error) => {
   const message =
     error?.message || error?.error?.message || String(error || "");
   return /ImageBitmap|could not be allocated/i.test(message);
 };
 
+/**
+ * Verifica se GPU ficou sem memória (out of memory).
+ * Indica problema grave - visualizador deve ser desabilitado.
+ * 
+ * @param {Error} error - Erro capturado
+ * @returns {boolean} - True se for out of memory
+ */
 const isWebGLOutOfMemory = (error) => {
   const message =
     error?.message || error?.error?.message || String(error || "");
   return /out_of_memory|context lost/i.test(message);
 };
 
+/**
+ * Verifica se WebGL falhou ao inicializar contexto.
+ * Pode ocorrer em navegadores sem suporte WebGL ou GPU desabilitada.
+ * 
+ * @param {Error} error - Erro capturado
+ * @returns {boolean} - True se for erro de contexto WebGL
+ */
 const isWebGLContextInitFailure = (error) => {
   const message =
     error?.message || error?.error?.message || String(error || "");
   return /webgl context|context.*creation/i.test(message);
 };
 
+// ===== FUNÇÃO: INICIALIZAR SISTEMA DE FAVORITOS =====
+/**
+ * Configura toggle de favoritos com integração à API.
+ * 
+ * Comportamento:
+ * - Usuário logado: toggle funciona normalmente (POST/DELETE na API)
+ * - Usuário não logado: exibe modal de login ao clicar
+ * 
+ * HTML esperado:
+ * <input type="checkbox" id="btn-favoritar">
+ * 
+ * Estado inicial:
+ * Sincronizado com produto.favorito (vem do backend PHP).
+ * 
+ * API:
+ * - POST /api/favoritos.php: adiciona favorito
+ * - DELETE /api/favoritos.php: remove favorito
+ * 
+ * @param {Object} produto - Dados do produto com id e favorito
+ */
 const initFavorito = (produto) => {
   if (!produto || !produto.id) {
     return;
@@ -345,25 +665,49 @@ const initFavorito = (produto) => {
     toggle.checked = Boolean(value);
   };
 
+  // Sincroniza estado inicial com backend
   setToggle(produto.favorito);
 
+  // Se não logado, exibe modal ao clicar
   if (requiresLogin) {
     toggle.addEventListener("change", () => {
-      setToggle(false);
+      setToggle(false); // Desfaz toggle
       showLoginPopup();
     });
     return;
   }
 
+  // ===== LISTENER: TOGGLE DE FAVORITOS =====
+  /**
+   * Gerencia cliques no checkbox de favoritos.
+   * 
+   * Fluxo:
+   * 1. Previne múltiplos cliques (loading state)
+   * 2. Desabilita toggle durante requisição
+   * 3. Envia POST (adicionar) ou DELETE (remover) para API
+   * 4. Atualiza estado local (produto.favorito)
+   * 5. Exibe toast de confirmação
+   * 6. Reabilita toggle
+   * 
+   * Tratamento de erro:
+   * - Reverte estado do toggle
+   * - Exibe mensagem de erro
+   * - Se 401: exibe modal de login (sessão expirou)
+   */
   toggle.addEventListener("change", async () => {
+    // Previne cliques múltiplos
     if (toggle.dataset.loading === "1") {
       return;
     }
     toggle.dataset.loading = "1";
     toggle.disabled = true;
+    
     try {
+      // Chama API (POST ou DELETE)
       await updateFavorite(produto.id, toggle.checked);
       produto.favorito = toggle.checked;
+      
+      // Feedback visual
       exibirToast(
         toggle.checked
           ? "Produto adicionado aos favoritos."
@@ -371,19 +715,45 @@ const initFavorito = (produto) => {
       );
     } catch (error) {
       console.error("Favoritos", error);
+      
+      // Reverte toggle em caso de erro
       setToggle(!toggle.checked);
       const message = error?.message || "Não foi possível atualizar favoritos.";
       exibirToast(message);
+      
+      // Sessão expirou
       if (error?.status === 401) {
         showLoginPopup();
       }
     } finally {
+      // Reabilita toggle
       toggle.disabled = false;
       delete toggle.dataset.loading;
     }
   });
 };
 
+// ===== FUNÇÃO: EXIBIR TOAST (NOTIFICAÇÃO) =====
+/**
+ * Exibe notificação temporária no canto inferior direito.
+ * 
+ * Estilo:
+ * - Fundo dourado (#d4af37) - cor tema IMPERIUM
+ * - Texto preto para contraste
+ * - Bordas arredondadas (10px)
+ * - Sombra pronunciada
+ * - z-index alto (99999) para sobrepor tudo
+ * 
+ * Animação:
+ * Aparece imediatamente e desaparece após 2 segundos.
+ * Sem animação de fade (pode ser adicionada com CSS).
+ * 
+ * Uso:
+ * exibirToast("Produto adicionado ao carrinho!");
+ * exibirToast("Erro ao processar solicitação");
+ * 
+ * @param {string} mensagem - Texto da notificação
+ */
 const exibirToast = (mensagem) => {
   const aviso = document.createElement("div");
   aviso.textContent = mensagem;
@@ -451,17 +821,51 @@ const initCarrinho = (produto) => {
   });
 };
 
+// ===== FUNÇÃO: VISUALIZADOR 3D DUPLO (CONJUNTOS) =====
+/**
+ * Inicializa visualizador 3D para conjuntos (superior + inferior).
+ * 
+ * Propósito:
+ * Renderiza dois modelos simultaneamente (ex: blusa + calça).
+ * Modelos são agrupados e renderizados juntos.
+ * 
+ * Parâmetros:
+ * @param {string} modelPathSuperior - URL do modelo da parte superior (.glb)
+ * @param {string} modelPathInferior - URL do modelo da parte inferior (.glb)
+ * @param {Object} options - Opções de configuração
+ * @param {boolean} options.disableImageBitmap - Desabilita ImageBitmap (fallback)
+ * 
+ * Fluxo:
+ * 1. Valida container e estado do viewer
+ * 2. Configura proteção ImageBitmap se necessário
+ * 3. Carrega ambos os modelos em paralelo
+ * 4. Agrupa modelos em THREE.Group
+ * 5. Centraliza e escala conjunto
+ * 6. Configura câmera, luzes e controles
+ * 7. Inicia loop de renderização
+ * 
+ * Tratamento de erros:
+ * - Exibe placeholder se modelos falharem
+ * - Tenta novamente sem ImageBitmap se erro específico
+ * - Desabilita viewer temporariamente se out of memory
+ */
 const initThreeViewerDuplo = async (modelPathSuperior, modelPathInferior, options = {}) => {
   console.log('*** initThreeViewerDuplo CHAMADO ***');
   console.log('ModelPath Superior recebido:', modelPathSuperior);
   console.log('ModelPath Inferior recebido:', modelPathInferior);
   
+  // ===== VALIDAÇÃO DO CONTAINER =====
   const container3D = document.getElementById("container3D");
   if (!container3D) {
     console.error('Container 3D não encontrado!');
     return;
   }
 
+  // ===== VERIFICAÇÃO DE ESTABILIDADE =====
+  /**
+   * viewerStabilityGuard previne crashes repetidos.
+   * Após N falhas em X minutos, desabilita viewer temporariamente.
+   */
   if (viewerStabilityGuard.isDisabled()) {
     console.warn('Viewer desabilitado por instabilidade');
     container3D.classList.add("placeholder");
@@ -469,6 +873,12 @@ const initThreeViewerDuplo = async (modelPathSuperior, modelPathInferior, option
     return;
   }
 
+  // ===== CONFIGURAÇÃO DE IMAGEBITMAP =====
+  /**
+   * Se disableImageBitmap=true, desabilita window.createImageBitmap.
+   * Força Three.js a usar HTMLImageElement como fallback.
+   * Resolve erros "could not be allocated" em GPUs limitadas.
+   */
   const { disableImageBitmap = false } = options;
   let releaseImageBitmap = null;
   if (disableImageBitmap) {
@@ -485,6 +895,7 @@ const initThreeViewerDuplo = async (modelPathSuperior, modelPathInferior, option
     container3D.classList.add("placeholder");
   };
 
+  // ===== VALIDAÇÃO DOS MODELOS =====
   if (!modelPathSuperior && !modelPathInferior) {
     console.warn('Nenhum modelo fornecido!');
     showPlaceholder();
@@ -1003,32 +1414,74 @@ const initAlternanciaConjunto = (produto) => {
   });
 };
 
+// ===== FUNÇÃO: INICIALIZAR PÁGINA DE PRODUTO =====
+/**
+ * Orquestra inicialização de todos os componentes da página.
+ * 
+ * Fluxo de inicialização:
+ * 1. Parseia dados do produto do HTML (data-produto)
+ * 2. Inicializa barra de busca (animação)
+ * 3. Renderiza botões de tamanho (PP-XGG ou 38-44)
+ * 4. Configura sistema de favoritos (toggle + API)
+ * 5. Configura botão adicionar ao carrinho
+ * 6. Configura alternância de visualização (conjuntos)
+ * 7. Inicializa visualizador 3D apropriado:
+ *    - Conjuntos (cat 5/11): initThreeViewerDuplo (2 modelos)
+ *    - Outros produtos: initThreeViewer (1 modelo)
+ * 
+ * Categorias:
+ * - 1: Calçados (tamanhos numéricos)
+ * - 2-4: Roupas individuais (tamanhos alfabéticos)
+ * - 5: Conjuntos masculinos (superior + inferior)
+ * - 11: Conjuntos femininos (superior + inferior)
+ * 
+ * Estrutura de paths para conjuntos:
+ * - Superior: /storage/models/conjunto_1/modelo.glb (com underscore)
+ * - Inferior: /storage/models/conjunto1/modelo.glb (sem underscore)
+ * 
+ * Nota:
+ * Função roda após DOMContentLoaded para garantir que HTML está pronto.
+ */
 const initProdutoPage = () => {
   const produto = parseProdutoData();
   console.log('Produto carregado:', produto);
   
+  // ===== INICIALIZAÇÃO DOS COMPONENTES =====
   initSearchBar();
   initTamanhos(produto);
   initFavorito(produto);
   initCarrinho(produto);
   initAlternanciaConjunto(produto);
   
-  // Se for conjunto (categoria 5=Masculino ou 11=Feminino), carrega os dois modelos juntos
+  // ===== INICIALIZAÇÃO DO VISUALIZADOR 3D =====
+  /**
+   * Decisão baseada em categoria:
+   * - Conjuntos (5 ou 11): carrega 2 modelos simultaneamente
+   * - Outros: carrega modelo único
+   */
   if (produto && (produto.categoriaId === 5 || produto.categoriaId === 11) && produto.modelPath) {
-    const pathSuperior = produto.modelPath; // conjunto_X (com underscore)
-    const pathInferior = produto.modelPath.replace(/conjunto_(\d+)\//, 'conjunto$1/'); // conjuntoX (sem underscore)
+    // Conjuntos: superior (conjunto_X) + inferior (conjuntoX)
+    const pathSuperior = produto.modelPath; // Ex: /storage/models/conjunto_1/modelo.glb
+    const pathInferior = produto.modelPath.replace(/conjunto_(\d+)\//, 'conjunto$1/'); // Ex: /storage/models/conjunto1/modelo.glb
+    
     console.log('=== CARREGANDO CONJUNTO ===');
     console.log('Categoria ID:', produto.categoriaId);
     console.log('Path original:', produto.modelPath);
     console.log('Path Superior:', pathSuperior);
     console.log('Path Inferior:', pathInferior);
+    
     initThreeViewerDuplo(pathSuperior, pathInferior);
   } else {
-    // Para produtos normais, carrega modelo único
+    // Produtos normais: modelo único
     console.log('=== CARREGANDO PRODUTO NORMAL ===');
     console.log('Model path:', produto?.modelPath);
     initThreeViewer(produto?.modelPath);
   }
 };
 
+// ===== AUTO-INICIALIZAÇÃO =====
+/**
+ * Aguarda carregamento completo do DOM.
+ * Garante que todos os elementos HTML existam antes de acessá-los.
+ */
 document.addEventListener("DOMContentLoaded", initProdutoPage);

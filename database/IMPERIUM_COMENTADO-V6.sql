@@ -124,7 +124,7 @@ CREATE TABLE Funcionario (
     -- Garante integridade referencial: todo funcionário deve ser um usuário válido
     -- Sem ON DELETE: impede exclusão acidental de usuários que são funcionários
     -- Para demitir um funcionário, primeiro remova o registro aqui, depois atualize UsuFuncao
-    FOREIGN KEY (UsuId) REFERENCES Usuario(UsuId)
+    FOREIGN KEY (UsuId) REFERENCES Usuario(UsuId) ON DELETE CASCADE
 );
 /*
  Tabela: CatRoupa (Categoria da Roupa)
@@ -218,7 +218,7 @@ CREATE TABLE Carrinho (
  Sem ON DELETE: se o usuário for excluído, o carrinho deve ser tratado antes.
  */
 ALTER TABLE Carrinho
-ADD CONSTRAINT FK_Carrinho_1 FOREIGN KEY (UsuId) REFERENCES Usuario (UsuId);
+ADD CONSTRAINT FK_Carrinho_1 FOREIGN KEY (UsuId) REFERENCES Usuario (UsuId) ON DELETE CASCADE;
 /*
  Relacionamento: Carrinho N:1 Roupa
  Cada item referencia um produto válido do catálogo.
@@ -259,7 +259,7 @@ CREATE TABLE Favorito (
  Sem ON DELETE: se o usuário for excluído, os favoritos devem ser tratados antes.
  */
 ALTER TABLE Favorito
-ADD CONSTRAINT FK_Favorito_Usuario FOREIGN KEY (UsuId) REFERENCES Usuario (UsuId);
+ADD CONSTRAINT FK_Favorito_Usuario FOREIGN KEY (UsuId) REFERENCES Usuario (UsuId) ON DELETE CASCADE;
 /*
  Relacionamento: Favorito N:1 Roupa
  Cada favorito referencia um produto válido.
@@ -306,7 +306,7 @@ CREATE TABLE EnderecoEntrega (
  Sem ON DELETE: endereços de pedidos antigos devem ser preservados para histórico.
  */
 ALTER TABLE EnderecoEntrega
-ADD CONSTRAINT FK_EnderecoEntrega_2 FOREIGN KEY (UsuId) REFERENCES Usuario (UsuId);
+ADD CONSTRAINT FK_EnderecoEntrega_2 FOREIGN KEY (UsuId) REFERENCES Usuario (UsuId) ON DELETE CASCADE;
 /*
  Tabela: Estoque
  Propósito: Gerencia os locais físicos de armazenamento dos produtos.
@@ -408,7 +408,7 @@ CREATE TABLE EstoqueProduto (
     
     -- Relacionamento com Roupa
     -- Sem ON DELETE: produtos em estoque não podem ser removidos do catálogo
-    FOREIGN KEY (RoupaId) REFERENCES Roupa (RoupaId)
+    FOREIGN KEY (RoupaId) REFERENCES Roupa (RoupaId) 
 );
 /*
  Tabela: Pedido
@@ -535,7 +535,7 @@ CREATE TABLE PedidoProduto (
     
     -- Relacionamento com Pedido
     -- Sem ON DELETE CASCADE explícito; exclusões do pedido devem tratar os itens
-    FOREIGN KEY (PedId) REFERENCES Pedido (PedId),
+    FOREIGN KEY (PedId) REFERENCES Pedido (PedId) ON DELETE CASCADE,
     
     -- Relacionamento com Roupa
     -- Sem ON DELETE: produtos em pedidos históricos não podem ser excluídos do catálogo

@@ -13,6 +13,11 @@
  * Uso típico:
  * require_once dirname(__DIR__) . '/bootstrap.php'; // De dentro de public/api/
  * require_once __DIR__ . '/bootstrap.php'; // De dentro de public/ diretamente
+ * 
+ * Segurança e Boas Práticas:
+ * - Este arquivo não deve produzir saída (echo/print) para evitar problemas de headers.
+ * - Mantenha apenas inicialização e includes; lógica de negócio deve ficar em controllers/pages.
+ * - Use caminhos relativos calculados via dirname para evitar acoplamento a ambientes locais.
  */
 
 // ===== ATIVAÇÃO DE STRICT TYPES =====
@@ -39,5 +44,10 @@ declare(strict_types=1);
  * - asset_path(), url_path(), site_path() (funções helpers)
  * - Classes do Composer (Firebase, MercadoPago, etc)
  * - Timezone configurado
+	* 
+	* Observação:
+	* - Se você mover o diretório `public/`, ajuste apenas este arquivo.
+	* - Scripts em `public/api/` e `public/pages/` devem incluir ESTE bootstrap, não o app.php diretamente.
+	* - Isso garante padronização, evita caminhos quebrados e facilita manutenção.
  */
 require_once dirname(__DIR__) . '/bootstrap/app.php';

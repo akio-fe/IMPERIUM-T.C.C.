@@ -1,23 +1,20 @@
 <?php
-/**
- * API de Exclusão de Conta
- * 
- * Endpoint responsável por excluir permanentemente a conta do usuário.
- * Realiza a exclusão tanto no banco de dados local (MySQL) quanto no Firebase Authentication.
- * 
- * Requisitos de Segurança:
- * 1. Usuário deve estar autenticado (Token JWT válido).
- * 2. Email do usuário DEVE estar verificado no Firebase.
- * 3. Operação atômica (transação): ou exclui tudo ou nada.
- */
-
-// Configurações de erro e headers
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 session_start();
+
 require_once dirname(__DIR__, 3) . '/vendor/autoload.php';
 require_once dirname(__DIR__, 2) . '/bootstrap.php';
+
+use Firebase\Auth\Token\Exception\ExpiredToken;
+use Firebase\Auth\Token\Exception\InvalidToken as FirebaseInvalidToken;
+use Kreait\Firebase\Exception\Auth\RevokedIdToken;
+use Kreait\Firebase\Exception\AuthException;
+use Kreait\Firebase\Exception\FirebaseException;
+use Kreait\Firebase\Exception\Auth\UserNotFound;
+use Kreait\Firebase\Factory;
+use Lcobucci\JWT\UnencryptedToken;
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -29,167 +26,159 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Exception\AuthException;
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    respondJson(405, [
+        'success' => false,
+        'message' => 'Método não permitido. Utilize POST.'
+    ]);
+}
 
-// 1. Inicialização do Firebase
 $serviceAccountPath = resolve_firebase_credentials_path();
 if (!$serviceAccountPath) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Erro de configuração do servidor (credenciais).']);
-    exit;
+    respondJson(500, [
+        'success' => false,
+        'message' => 'Credenciais do Firebase não encontradas no servidor.'
+    ]);
 }
 
 try {
-    $factory = (new Factory)->withServiceAccount($serviceAccountPath);
-    $auth = $factory->createAuth();
+    $auth = (new Factory())->withServiceAccount($serviceAccountPath)->createAuth();
 } catch (\Throwable $e) {
-    error_log('Erro Firebase: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Erro interno ao conectar com autenticação.']);
-    exit;
+    error_log('Falha ao inicializar Firebase Auth: ' . $e->getMessage());
+    respondJson(500, [
+        'success' => false,
+        'message' => 'Erro ao inicializar autenticação do Firebase.'
+    ]);
 }
 
-// 2. Extração do Token JWT
-$headers = function_exists('getallheaders') ? getallheaders() : [];
-$idToken = null;
-
-if (!empty($headers)) {
-    foreach ($headers as $name => $value) {
-        if (strcasecmp($name, 'Authorization') === 0) {
-            $idToken = preg_replace('/^Bearer\s+/i', '', trim($value));
-            break;
-        }
-    }
-}
-if (!$idToken && isset($_SERVER['HTTP_AUTHORIZATION'])) {
-    $idToken = preg_replace('/^Bearer\s+/i', '', trim((string) $_SERVER['HTTP_AUTHORIZATION']));
-}
-
+$idToken = extractBearerToken();
 if (!$idToken) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Token de autenticação não fornecido.']);
-    exit;
+    respondJson(401, [
+        'success' => false,
+        'message' => 'Token de autenticação não fornecido.'
+    ]);
 }
 
-// 3. Validação do Token e Verificação de Email
 try {
+    /** @var UnencryptedToken $verifiedIdToken */
     $verifiedIdToken = $auth->verifyIdToken($idToken);
     $uid = $verifiedIdToken->claims()->get('sub');
-    $emailVerified = $verifiedIdToken->claims()->get('email_verified');
+    $emailVerified = (bool) ($verifiedIdToken->claims()->get('email_verified') ?? false);
 
-    // REQUISITO: Solicite uma verificação no email
-    // Se o email não estiver verificado, bloqueia a exclusão e solicita que o usuário verifique.
-    // O front-end deve tratar o código 'EMAIL_NOT_VERIFIED' e oferecer a opção de re-enviar o email.
     if (!$emailVerified) {
-        http_response_code(403);
-        echo json_encode([
-            'success' => false, 
-            'message' => 'Para excluir sua conta, é necessário verificar seu email primeiro. Verifique sua caixa de entrada.',
-            'code' => 'EMAIL_NOT_VERIFIED'
+        respondJson(403, [
+            'success' => false,
+            'code' => 'EMAIL_NOT_VERIFIED',
+            'message' => 'É necessário confirmar seu email antes de excluir a conta.'
         ]);
-        exit;
+    }
+} catch (ExpiredToken $e) {
+    respondJson(401, ['success' => false, 'message' => 'Sessão expirada. Faça login novamente.']);
+} catch (RevokedIdToken $e) {
+    respondJson(401, ['success' => false, 'message' => 'Sessão revogada. Faça login novamente.']);
+} catch (FirebaseInvalidToken $e) {
+    respondJson(401, ['success' => false, 'message' => 'Token de autenticação inválido: ' . $e->getMessage()]);
+} catch (AuthException $e) {
+    respondJson(401, ['success' => false, 'message' => 'Erro de autenticação: ' . $e->getMessage()]);
+} catch (\InvalidArgumentException $e) {
+    respondJson(400, ['success' => false, 'message' => 'Token mal formatado: ' . $e->getMessage()]);
+}
+
+$stmt = $conn->prepare('SELECT UsuId FROM Usuario WHERE UsuUID = ? LIMIT 1');
+if (!$stmt) {
+    respondJson(500, ['success' => false, 'message' => 'Erro ao preparar consulta de usuário.']);
+}
+
+$stmt->bind_param('s', $uid);
+$stmt->execute();
+$stmt->bind_result($userId);
+
+if (!$stmt->fetch()) {
+    $stmt->close();
+    respondJson(404, [
+        'success' => false,
+        'message' => 'Usuário não encontrado no banco de dados.'
+    ]);
+}
+
+$stmt->close();
+
+try {
+    $conn->begin_transaction();
+
+    $deleteStmt = $conn->prepare('DELETE FROM Usuario WHERE UsuId = ?');
+    if (!$deleteStmt) {
+        throw new RuntimeException('Erro ao preparar exclusão do usuário: ' . $conn->error);
     }
 
+    $deleteStmt->bind_param('i', $userId);
+    $deleteStmt->execute();
+
+    if ($deleteStmt->affected_rows === 0) {
+        $deleteStmt->close();
+        throw new RuntimeException('Falha ao excluir usuário. Nenhuma linha afetada.');
+    }
+
+    $deleteStmt->close();
+
+    // Exclui o mesmo usuário no Firebase (só confirma após sucesso nas duas camadas).
+    try {
+        $auth->deleteUser($uid);
+    } catch (UserNotFound $e) {
+        // Já removido no Firebase, prossegue com o commit mantendo consistência local.
+        error_log('Usuário já inexistente no Firebase: ' . $uid);
+    }
+
+    $conn->commit();
+} catch (AuthException | FirebaseException $e) {
+    $conn->rollback();
+    error_log('Não foi possível remover usuário no Firebase: ' . $e->getMessage());
+    respondJson(500, [
+        'success' => false,
+        'message' => 'Falha ao remover usuário no Firebase Authentication. Nenhum dado foi apagado.',
+        'details' => $e->getMessage()
+    ]);
 } catch (\Throwable $e) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Sessão inválida ou expirada: ' . $e->getMessage()]);
+    $conn->rollback();
+    error_log('Erro ao excluir conta: ' . $e->getMessage());
+    respondJson(500, [
+        'success' => false,
+        'message' => 'Erro ao excluir conta. Tente novamente mais tarde.'
+    ]);
+}
+
+session_unset();
+session_destroy();
+
+respondJson(200, [
+    'success' => true,
+    'message' => 'Conta excluída com sucesso.'
+]);
+
+function respondJson(int $status, array $payload): void
+{
+    http_response_code($status);
+    echo json_encode($payload);
     exit;
 }
 
-// 4. Exclusão no Banco de Dados (MySQL)
-// Inicia transação para garantir integridade: ou exclui tudo ou nada.
-$conn->begin_transaction();
+function extractBearerToken(): ?string
+{
+    $headers = function_exists('getallheaders') ? getallheaders() : [];
 
-try {
-    // Busca ID local do usuário (UsuId) usando o UID do Firebase
-    $stmt = $conn->prepare("SELECT UsuId FROM usuario WHERE UsuUID = ?");
-    $stmt->bind_param("s", $uid);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    
-    if ($res->num_rows === 0) {
-        // Usuário não existe no banco local, mas existe no Firebase.
-        // Prossegue para excluir do Firebase para manter consistência entre os sistemas.
-        $userId = null;
-    } else {
-        $row = $res->fetch_assoc();
-        $userId = (int) $row['UsuId'];
-    }
-    $stmt->close();
-
-    if ($userId) {
-        // Exclui dados relacionados em ordem específica para respeitar Chaves Estrangeiras (Foreign Keys)
-        
-        // 1. Carrinho: Remove itens do carrinho do usuário
-        $conn->query("DELETE FROM carrinho WHERE UsuId = $userId");
-        
-        // 2. Favoritos: Remove lista de desejos
-        $conn->query("DELETE FROM favorito WHERE UsuId = $userId");
-        
-        // 3. Pedidos e Pagamentos (Cascata manual)
-        // Pedidos possuem FK para Endereços, então devem ser excluídos antes dos Endereços.
-        // Pagamentos e Itens possuem FK para Pedidos, então devem ser excluídos antes dos Pedidos.
-        
-        // Busca IDs dos pedidos do usuário
-        $pedidosRes = $conn->query("SELECT PedId FROM pedido WHERE UsuId = $userId");
-        $pedidosIds = [];
-        while ($p = $pedidosRes->fetch_assoc()) {
-            $pedidosIds[] = (int) $p['PedId'];
+    foreach ($headers as $name => $value) {
+        if (strcasecmp($name, 'Authorization') === 0) {
+            return preg_replace('/^Bearer\s+/i', '', trim((string) $value));
         }
-        
-        if (!empty($pedidosIds)) {
-            $idsStr = implode(',', $pedidosIds);
-            
-            // Deleta Pagamentos vinculados aos pedidos
-            $conn->query("DELETE FROM pagamento WHERE PedId IN ($idsStr)");
-            
-            // Deleta Itens (PedidoProduto) vinculados aos pedidos
-            $conn->query("DELETE FROM pedidoproduto WHERE PedId IN ($idsStr)");
-            
-            // Deleta os Pedidos (Cabeçalho)
-            $conn->query("DELETE FROM pedido WHERE UsuId = $userId");
-        }
-        
-        // 4. Endereços: Agora seguro excluir, pois não há pedidos referenciando
-        $conn->query("DELETE FROM enderecoentrega WHERE UsuId = $userId");
-        
-        // 5. CaixaMovimento: Se for funcionário, remove registros de auditoria (opcional, mas solicitado "excluir conta")
-        $conn->query("DELETE FROM caixamovimento WHERE UsuId = $userId");
-        
-        // 6. Funcionario: Se existir registro na tabela extendida
-        $conn->query("DELETE FROM funcionario WHERE UsuId = $userId");
-        
-        // 7. Usuario: Finalmente, remove o registro principal
-        $conn->query("DELETE FROM usuario WHERE UsuId = $userId");
     }
 
-    // 5. Exclusão no Firebase Authentication
-    // Remove permanentemente a conta do provedor de identidade
-    $auth->deleteUser($uid);
-
-    // Commit da transação: Confirma todas as alterações no banco
-    $conn->commit();
-
-    // Limpa sessão PHP atual
-    session_destroy();
-
-    echo json_encode(['success' => true, 'message' => 'Conta excluída com sucesso.']);
-
-} catch (\Throwable $e) {
-    // Rollback: Desfaz alterações no banco em caso de erro (mantém consistência)
-    $conn->rollback();
-    
-    $errorMessage = $e->getMessage();
-    error_log('Erro ao excluir conta: ' . $errorMessage);
-    
-    // Diagnóstico específico para invalid_grant (Erro comum de credenciais/relógio)
-    if (strpos($errorMessage, 'invalid_grant') !== false) {
-        $msg = 'Erro de autenticação do servidor (invalid_grant). Verifique: 1. Se o relógio do servidor está correto. 2. Se o arquivo de credenciais do Firebase (JSON) é válido e não expirou.';
-    } else {
-        $msg = 'Erro ao processar exclusão da conta: ' . $errorMessage;
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        return preg_replace('/^Bearer\s+/i', '', trim((string) $_SERVER['HTTP_AUTHORIZATION']));
     }
 
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => $msg]);
+    if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        return preg_replace('/^Bearer\s+/i', '', trim((string) $_SERVER['REDIRECT_HTTP_AUTHORIZATION']));
+    }
+
+    return null;
 }

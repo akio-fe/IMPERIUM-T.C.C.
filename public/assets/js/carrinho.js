@@ -244,6 +244,18 @@ const mostrarAviso = (mensagem) => {
   setTimeout(() => aviso.remove(), 2500);
 };
 
+// ===== FUNÇÃO: EXIBIR MENSAGEM NA LISTA DE CARRINHO =====
+/**
+ * Exibe mensagem de estado na área do carrinho.
+ * 
+ * Usado para:
+ * - "Carregando itens do carrinho..."
+ * - "Seu carrinho ainda está vazio."
+ * - Mensagens de erro (com estilo diferenciado)
+ * 
+ * @param {string} mensagem - Texto a exibir
+ * @param {boolean} isError - Se true, aplica classe estado-erro (cor vermelha)
+ */
 const setListaMensagem = (mensagem, isError = false) => {
   if (!listaCarrinho) {
     return;
@@ -253,6 +265,22 @@ const setListaMensagem = (mensagem, isError = false) => {
   }">${escapeHtml(mensagem)}</p>`;
 };
 
+// ===== FUNÇÃO: EXIBIR MENSAGEM NA LISTA DE ENDEREÇOS =====
+/**
+ * Exibe mensagem de estado na área de seleção de endereços.
+ * 
+ * Comportamento:
+ * - Limpa seleção de endereço (enderecoState.selecionado = null)
+ * - Desabilita botão "Ir para Pagamento"
+ * 
+ * Usado para:
+ * - "Carregando endereços..."
+ * - "Nenhum endereço encontrado."
+ * - Mensagens de erro ao buscar endereços
+ * 
+ * @param {string} mensagem - Texto a exibir
+ * @param {boolean} isError - Se true, aplica estilo de erro
+ */
 const setEnderecoMensagem = (mensagem, isError = false) => {
   if (!listaEnderecosEl) {
     return;
@@ -264,6 +292,19 @@ const setEnderecoMensagem = (mensagem, isError = false) => {
   habilitarPagamentoSePossivel();
 };
 
+// ===== FUNÇÃO: CONTROLAR BOTÃO DE PAGAMENTO =====
+/**
+ * Habilita/desabilita botão "Ir para Pagamento" baseado em endereço selecionado.
+ * 
+ * Regra:
+ * - Botão habilitado: enderecoState.selecionado > 0 (ID válido)
+ * - Botão desabilitado: nenhum endereço selecionado
+ * 
+ * Chamado por:
+ * - renderizarEnderecos() - após renderizar lista
+ * - setEnderecoMensagem() - ao exibir erro
+ * - Listener de change nos radios de endereço
+ */
 const habilitarPagamentoSePossivel = () => {
   if (!btnIrPagamento) {
     return;
@@ -271,6 +312,27 @@ const habilitarPagamentoSePossivel = () => {
   btnIrPagamento.disabled = !(enderecoState.selecionado > 0);
 };
 
+// ===== FUNÇÃO: CONSTRUIR HTML DE ENDEREÇO =====
+/**
+ * Cria markup HTML de um card de endereço.
+ * 
+ * Estrutura:
+ * <label class="endereco-card">
+ *   <input type="radio" name="endereco-selecionado" value="{id}">
+ *   <div>
+ *     <strong>{referência}</strong>
+ *     <p>{rua, número - bairro, cidade - UF, CEP}</p>
+ *   </div>
+ * </label>
+ * 
+ * Compatívelcom múltiplos formatos de API:
+ * - endereco.id ou endereco.EndEntId
+ * - endereco.rua ou endereco.EndEntRua
+ * - etc (nomes do MySQL)
+ * 
+ * @param {Object} endereco - Dados do endereço
+ * @returns {string} - HTML do card
+ */
 const buildEnderecoMarkup = (endereco) => {
   const id = Number(endereco.id || endereco.EndEntId || 0);
   const referencia = escapeHtml(
@@ -298,13 +360,32 @@ const buildEnderecoMarkup = (endereco) => {
   `;
 };
 
+// ===== FUNÇÃO: RENDERIZAR LISTA DE ENDEREÇOS =====
+/**
+ * Renderiza cards de endereços de entrega com radios de seleção.
+ * 
+ * Comportamento:
+ * 1. Se lista vazia:
+ *    - Exibe mensagem "Nenhum endereço encontrado"
+ *    - Inclui link para cadastrar novo (se ADD_ADDRESS_URL existir)
+ *    - Desabilita botão de pagamento
+ * 
+ * 2. Se lista com itens:
+ *    - Renderiza todos os endereços como radios
+ *    - Pré-seleciona o primeiro da lista
+ *    - Habilita botão de pagamento
+ * 
+ * @param {Array} enderecos - Lista de endereços da API
+ */
 const renderizarEnderecos = (enderecos) => {
   if (!listaEnderecosEl) {
     return;
   }
 
+  // ===== CASO: LISTA VAZIA =====
   if (!enderecos.length) {
     if (ADD_ADDRESS_URL) {
+      // Inclui link para página de cadastro de endereços
       const safeUrl = escapeHtml(String(ADD_ADDRESS_URL));
       listaEnderecosEl.innerHTML = `
         <p class="estado-lista">
@@ -318,15 +399,41 @@ const renderizarEnderecos = (enderecos) => {
     return;
   }
 
+  // ===== CASO: RENDERIZAR ENDEREÇOS =====
+  /**
+   * Cria HTML de todos os endereços e injeta no DOM.
+   * map().join('') é mais performante que loop com appendChild.
+   */
   listaEnderecosEl.innerHTML = enderecos.map((item) => buildEnderecoMarkup(item)).join("");
+  
+  // Pré-seleciona primeiro endereço
   enderecoState.selecionado = Number(enderecos[0].id || enderecos[0].EndEntId || 0) || null;
   const firstRadio = listaEnderecosEl.querySelector('input[name="endereco-selecionado"]');
   if (firstRadio && enderecoState.selecionado) {
     firstRadio.checked = true;
   }
+  
   habilitarPagamentoSePossivel();
 };
 
+// ===== FUNÇÃO: ATUALIZAR TOTAIS DO CARRINHO =====
+/**
+ * Atualiza valores exibidos de subtotal, frete e total.
+ * 
+ * Cálculos:
+ * - Subtotal: soma dos preços de todos os itens (do backend)
+ * - Frete: valor selecionado pelo usuário (consulta CEP)
+ * - Total: subtotal + frete
+ * 
+ * Elementos atualizados:
+ * - #subtotal: R$ XX,XX
+ * - #frete-valor: R$ XX,XX
+ * - #total: R$ XX,XX
+ * 
+ * Chamado por:
+ * - aplicarSnapshot() - após carregar/atualizar carrinho
+ * - consultarFrete() - após calcular frete
+ */
 const atualizarTotais = () => {
   if (subtotalEl) {
     subtotalEl.textContent = formatBR(state.subtotal);
@@ -340,6 +447,21 @@ const atualizarTotais = () => {
   }
 };
 
+// ===== FUNÇÃO: CONTROLAR BOTÃO FINALIZAR COMPRA =====
+/**
+ * Habilita/desabilita botão "Finalizar Compra".
+ * 
+ * Condições para habilitar:
+ * 1. Carrinho tem pelo menos 1 item (temProduto = true)
+ * 2. Usuário está autenticado (isAuthenticated = true)
+ * 
+ * Se desabilitado:
+ * - Carrinho vazio: "Adicione itens ao carrinho"
+ * - Não autenticado: clique redireciona para login
+ * 
+ * Chamado por:
+ * - aplicarSnapshot() - após atualizar carrinho
+ */
 const verificarBotaoFinalizar = () => {
   if (!btnFinalizar) {
     return;
@@ -348,9 +470,47 @@ const verificarBotaoFinalizar = () => {
   btnFinalizar.disabled = !(temProduto && isAuthenticated);
 };
 
+// ===== FUNÇÃO: APLICAR SNAPSHOT DO CARRINHO =====
+/**
+ * Sincroniza estado local com dados da API.
+ * 
+ * Dados esperados da API:
+ * {
+ *   "sucesso": true,
+ *   "itens": [
+ *     {
+ *       "id": 1,
+ *       "produtoId": 10,
+ *       "nome": "Camiseta",
+ *       "imagem": "url",
+ *       "quantidade": 2,
+ *       "tamanho": "M",
+ *       "precoUnitario": 89.90,
+ *       "total": 179.80
+ *     }
+ *   ],
+ *   "subtotal": 179.80
+ * }
+ * 
+ * Fluxo:
+ * 1. Atualiza state.itens e state.subtotal
+ * 2. Renderiza lista de itens no DOM
+ * 3. Atualiza valores de subtotal/frete/total
+ * 4. Verifica se botão "Finalizar" deve estar habilitado
+ * 
+ * Chamado por:
+ * - carregarCarrinho() - carregamento inicial
+ * - atualizarItem() - após alterar quantidade
+ * - removerItem() - após remover item
+ * 
+ * @param {Object} dados - Resposta da API com itens e subtotal
+ */
 const aplicarSnapshot = (dados) => {
+  // Valida e atualiza estado
   state.itens = Array.isArray(dados.itens) ? dados.itens : [];
   state.subtotal = typeof dados.subtotal === "number" ? dados.subtotal : 0;
+  
+  // Atualiza interface
   renderizarCarrinho();
   atualizarTotais();
   verificarBotaoFinalizar();
@@ -566,6 +726,32 @@ const iniciarPagamento = async () => {
   }
 };
 
+// ===== FUNÇÃO: CONSULTAR FRETE POR CEP =====
+/**
+ * Calcula valor e prazo de frete baseado no CEP de destino.
+ * 
+ * Fluxo:
+ * 1. Valida formato do CEP (8 dígitos)
+ * 2. Consulta ViaCEP para obter cidade/UF
+ * 3. Calcula frete baseado em tabela de regiões
+ * 4. Exibe resultado com valor e prazo
+ * 5. Gera mapa do Google Maps com endereço
+ * 6. Atualiza total do carrinho
+ * 
+ * Tabela de frete (simplificada para MVP):
+ * - SP Capital: R$ 15,00 (1-2 dias)
+ * - Interior SP: R$ 25,00 (2-4 dias)
+ * - RJ/MG/PR: R$ 35,00 (3-6 dias)
+ * - Outros: R$ 50,00 (5-9 dias)
+ * 
+ * Nota:
+ * Em produção, integrar com API dos Correios ou Melhor Envio.
+ * Esta implementação usa valores fixos por região.
+ * 
+ * APIs utilizadas:
+ * - ViaCEP: https://viacep.com.br/ws/{CEP}/json/
+ * - Google Maps Embed: iframe com endereço
+ */
 const consultarFrete = async () => {
   const cepInput = document.getElementById("input-cep");
   const resultado = document.getElementById("resultado-frete");
@@ -574,10 +760,12 @@ const consultarFrete = async () => {
     return;
   }
 
+  // Remove caracteres não numéricos (ex: "12345-678" -> "12345678")
   const cep = cepInput.value.replace(/\D/g, "");
   resultado.innerHTML = "";
   mapa.innerHTML = "";
 
+  // ===== VALIDAÇÃO DO CEP =====
   if (cep.length !== 8) {
     resultado.innerHTML = "<p>CEP inválido. Digite 8 números.</p>";
     freteSelecionado = 0;
@@ -585,10 +773,25 @@ const consultarFrete = async () => {
     return;
   }
 
+  // Feedback visual de loading
   resultado.innerHTML = '<p style="color:#aaa">Consultando...</p>';
+  
   try {
+    // ===== CONSULTA VIACEP =====
+    /**
+     * ViaCEP retorna:
+     * {
+     *   "cep": "01001-000",
+     *   "logradouro": "Praça da Sé",
+     *   "bairro": "Sé",
+     *   "localidade": "São Paulo",
+     *   "uf": "SP",
+     *   "erro": true // se CEP inválido
+     * }
+     */
     const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
     const data = await response.json();
+    
     if (data.erro) {
       resultado.innerHTML = "<p>CEP não encontrado.</p>";
       freteSelecionado = 0;
@@ -600,21 +803,35 @@ const consultarFrete = async () => {
     const cidade = data.localidade || "";
     const uf = data.uf || "";
 
+    // ===== CÁLCULO DE FRETE POR REGIÃO =====
+    /**
+     * Tabela simplificada de frete.
+     * 
+     * Critérios:
+     * - Distância da origem (SP)
+     * - Infraestrutura logística da região
+     * 
+     * Em produção:
+     * - Integrar com API dos Correios (PAC, SEDEX)
+     * - Considerar peso e dimensões do pacote
+     * - Oferecer múltiplas opções de entrega
+     */
     let valorFrete = 0;
     let prazo = "";
+    
     if (uf === "SP") {
       if (cidade.toLowerCase() === "são paulo" || cidade.toLowerCase() === "sao paulo") {
-        valorFrete = 15;
+        valorFrete = 15; // Capital: mais barato e rápido
         prazo = "1 a 2 dias úteis";
       } else {
-        valorFrete = 25;
+        valorFrete = 25; // Interior SP
         prazo = "2 a 4 dias úteis";
       }
     } else if (["RJ", "MG", "PR"].includes(uf)) {
-      valorFrete = 35;
+      valorFrete = 35; // Sudeste/Sul (exceto SP)
       prazo = "3 a 6 dias úteis";
     } else {
-      valorFrete = 50;
+      valorFrete = 50; // Demais regiões
       prazo = "5 a 9 dias úteis";
     }
 

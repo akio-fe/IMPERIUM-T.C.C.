@@ -1,23 +1,70 @@
 <?php
 /**
- * Página: Detalhes do Produto
- * Propósito: Exibe página de produto individual com visualização 3D.
+ * ============================================================
+ * PÁGINA: Detalhes do Produto
+ * ============================================================
  * 
- * Funcionalidades:
- * - Carrega dados completos do produto (nome, preço, imagem, modelo 3D)
- * - Visualizador 3D interativo usando Three.js
- * - Sistema de seleção de tamanhos
- * - Integração com sistema de favoritos
- * - Botão adicionar ao carrinho com validação de autenticação
- * - Botões de alternância para conjuntos (completo/superior/inferior)
- * - Header dinâmico (diferente para usuários logados e não logados)
- * - Navegação por categorias
+ * Arquivo: public/pages/shop/produto.php
+ * Propósito: Página individual de produto com visualizador 3D interativo e opções de compra.
+ * 
+ * Funcionalidades Principais:
+ * - Carregamento de dados completos do produto (nome, preço, categoria, modelos)
+ * - Visualizador 3D interativo usando Three.js (GLB/GLTF)
+ * - Controles de câmera: rotação, zoom, pan
+ * - Sistema de seleção de tamanhos dinâmico
+ * - Toggle de favoritos com feedback visual (coração)
+ * - Botão adicionar ao carrinho com validação
+ * - Botões especiais para conjuntos (exibe partes separadas do modelo 3D)
+ * - Header dinâmico baseado em autenticação
+ * - Navegação por categorias com link ativo
+ * 
+ * Tecnologias:
+ * - Three.js: renderização 3D no canvas
+ * - GLTFLoader: carregamento de modelos .glb/.gltf
+ * - OrbitControls: controles de câmera interativos
+ * - Firebase Authentication: favoritos requer login
+ * - MySQL: busca produto e verifica favoritos
+ * 
+ * Fluxo de Dados:
+ * 1. Recebe ID do produto via GET (?id=123)
+ * 2. Valida ID (FILTER_VALIDATE_INT)
+ * 3. Consulta produto no MySQL com JOIN em categorias
+ * 4. Verifica se produto está nos favoritos do usuário
+ * 5. Monta payload JSON com dados do produto
+ * 6. JavaScript (produto.js) renderiza modelo 3D
+ * 7. JavaScript gerencia favoritos, tamanhos, carrinho
+ * 
+ * Parâmetros GET:
+ * - id: RoupaId do produto (obrigatório, inteiro)
+ * 
+ * APIs JavaScript Utilizadas:
+ * - /public/api/favoritos.php: POST adiciona, DELETE remove favorito
+ * - /public/api/carrinho/adicionar.php: POST adiciona item ao carrinho
+ * 
+ * Modelos 3D:
+ * - Formato: GLB (Binary glTF) ou GLTF (JSON + binários)
+ * - Armazenamento: storage/models/{categoria}/
+ * - Carregamento: via GLTFLoader do Three.js
+ * - Otimizações: compressão Draco, texturas comprimidas
+ * 
+ * Categorias Especiais (Conjuntos):
+ * - CatRId 5 ou 11: exibe botões de alternância
+ * - Botões: Completo | Parte Superior | Calça
+ * - produto.js mostra/oculta meshes do modelo 3D
  * 
  * Segurança:
- * - Validação de ID do produto (FILTER_VALIDATE_INT)
- * - Prepared statements em todas as consultas
- * - Sanitização de saídas HTML
+ * - Validação rigorosa de ID (FILTER_VALIDATE_INT)
+ * - Prepared statements em todas as consultas SQL
+ * - Sanitização de saída com htmlspecialchars()
  * - Verificação de autenticação para favoritos
+ * - Validação de tipo nas variáveis (type casting)
+ * 
+ * Dependências:
+ * - bootstrap.php: conexão $conn, helpers, sessão
+ * - includes/header.php: função generateHeader()
+ * - assets/js/produto.js: renderização 3D, favoritos, tamanhos
+ * - CSS: header.css, produto.css
+ * - Three.js: carregado via CDN em produto.js
  */
 
 // Inicia sessão para verificar autenticação

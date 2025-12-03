@@ -252,7 +252,208 @@ form {
   border-radius: 12px; /* acompanha o botão */
 }
 
+/* ===== ESTILOS: FLUXO DE RECUPERAÇÃO DE SENHA ===== */
+/*
+ * Seção dedicada aos estilos da página esqueci_senha.html.
+ * 
+ * Propósito:
+ * Criar layout simplificado reutilizando a estrutura base do login,
+ * mas sem os painéis laterais animados (toggle-box).
+ * 
+ * Estratégia:
+ * - Usa classe .reset-only no container
+ * - Overrides específicos sobrescrevem estilos base
+ * - Mantém consistência visual com outras telas de auth
+ * 
+ * Componentes:
+ * 1. .container.reset-only: card principal
+ * 2. .form-box: container do formulário
+ * 3. .reset-description: textos explicativos
+ * 4. .back-login: link de retorno
+ * 
+ * Vantagens:
+ * - Reutiliza CSS existente (menos código)
+ * - Manutenção simplificada
+ * - Consistência visual automática
+ * - Responsivo por herança
+ */
+
+/*
+ * Override do container principal para página de reset.
+ * 
+ * Diferenças do container base:
+ * - Largura menor (420px vs 850px)
+ * - Altura automática (vs 550px fixo)
+ * - Sem painéis laterais
+ * - Sem animações de flip
+ */
+.container.reset-only {
+  /* Largura responsível: máximo 420px, mas adapta em telas menores */
+  /* calc(100% - 40px) garante margem de 20px de cada lado em mobile */
+  width: min(420px, calc(100% - 40px));
+  
+  /* Altura automática: ajusta ao conteúdo do formulário */
+  /* Diferente do login/cadastro que tem altura fixa de 550px */
+  height: auto;
+  
+  /* Padding vertical: espaçamento interno no topo e embaixo */
+  /* 0 no topo (form-box já tem padding), 20px embaixo */
+  padding: 0 10px 20px;
+}
+
+/*
+ * Override do form-box para página de reset.
+ * 
+ * Propósito:
+ * Remover posicionamento absoluto e animações,
+ * transformando em layout estático centralizado.
+ */
+.container.reset-only .form-box {
+  /* Posicionamento relativo: remove comportamento de slide */
+  /* Base usa position: absolute para animação entre login/cadastro */
+  position: relative;
+  
+  /* Largura total: ocupa todo o container */
+  /* Base usa 50% (metade do container de 850px) */
+  width: 100%;
+  
+  /* Altura automática: ajusta ao conteúdo */
+  /* Base usa 100% (altura fixa de 550px) */
+  height: auto;
+  
+  /* Remove posicionamento horizontal */
+  /* Base usa right: 0 para posicionar no lado direito */
+  right: auto;
+  left: auto;
+  
+  /* Força visibilidade: sempre visível */
+  /* Base esconde form-box.register por padrão */
+  visibility: visible;
+  
+  /* Padding generoso: espaçamento interno confortável */
+  /* 40px topo, 30px laterais, 50px embaixo */
+  /* Cria respiro visual e facilita leitura */
+  padding: 40px 30px 50px;
+}
+
+/*
+ * Remove painéis laterais de alternância.
+ * 
+ * toggle-box:
+ * - Painéis amarelos que deslizam entre login/cadastro
+ * - Não são necessários na página de reset
+ * - display: none remove completamente do layout
+ */
+.container.reset-only .toggle-box {
+  display: none;
+}
+
+/*
+ * Alinhamento do formulário de reset.
+ * 
+ * text-align: left:
+ * - Título e textos alinhados à esquerda
+ * - Mais legível para textos longos
+ * - Padrão da web para formulários
+ * 
+ * Base usa text-align: center para login/cadastro
+ */
+.reset-form form {
+  text-align: left;
+}
+
+/*
+ * Estilo dos textos explicativos/instrucionais.
+ * 
+ * Uso:
+ * - Texto após título: explica o que fazer
+ * - Texto após botão: instrução sobre spam
+ * 
+ * Características:
+ * - Fonte menor que título (14px vs 36px)
+ * - Cor neutra (#1f1e1e) - quase preto
+ * - Margem inferior generosa (25px) - separa do input
+ */
+.reset-description {
+  font-size: 14px;
+  margin: 10px 0 25px;
+  color: #1f1e1e;
+}
+
+/*
+ * Variante pequena da descrição.
+ * 
+ * Uso:
+ * Texto secundário menos importante (instrução sobre spam).
+ * 
+ * Diferenças:
+ * - Fonte ainda menor (13px vs 14px)
+ * - Cor mais clara (#3d3d3d vs #1f1e1e)
+ * - Margem inferior reduzida (5px vs 25px)
+ * - Menos destaque visual
+ */
+.reset-description.small {
+  font-size: 13px;
+  margin: 15px 0 5px;
+  color: #3d3d3d;
+}
+
+/*
+ * Link de retorno ao login.
+ * 
+ * Propósito:
+ * Permite usuário voltar para tela principal de login/cadastro
+ * sem usar botão do navegador.
+ * 
+ * Estilo:
+ * - inline-block: permite margin e não quebra linha
+ * - font-weight 600: semi-bold para destaque
+ * - underline: indica que é clicável
+ * - Cor padrão de texto (#1f1e1e)
+ */
+.back-login {
+  display: inline-block;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #1f1e1e;
+  text-decoration: underline;
+}
+
+/*
+ * Estado hover do link de retorno.
+ * 
+ * Comportamento:
+ * - Remove sublinhado ao passar mouse
+ * - Feedback visual de que é interativo
+ * - Padrão comum na web
+ */
+.back-login:hover {
+  text-decoration: none;
+}
+
+/*
+ * ============================================================
+ * RESPONSIVIDADE: ADAPTAÇÃO PARA MOBILE
+ * ============================================================
+ * 
+ * Breakpoint: 650px
+ * Dispositivos: smartphones em modo retrato
+ * 
+ * Mudanças principais:
+ * 1. Botão home menor (45px vs 55px)
+ * 2. Container ocupa altura total da viewport
+ * 3. Layout vertical com formulário embaixo
+ * 4. Painéis toggle movem verticalmente
+ * 
+ * Nota sobre página de reset:
+ * Os estilos .reset-only herdam responsividade automaticamente.
+ * Container.reset-only já usa min() que se adapta naturalmente.
+ */
 @media screen and (max-width: 650px) {
+  /*
+   * Botão home reduzido em mobile.
+   * Ocupa menos espaço em telas pequenas.
+   */
   .corner-btn {
     width: 45px;
     height: 45px;
@@ -325,3 +526,35 @@ form {
     font-size: 30px;
   }
 }
+
+/*
+ * ============================================================
+ * NOTAS FINAIS: HERANÇA E RESPONSIVIDADE
+ * ============================================================
+ * 
+ * Página de Recuperação de Senha (.reset-only):
+ * 
+ * Responsividade automática:
+ * - width: min(420px, calc(100% - 40px)) se adapta naturalmente
+ * - Margens de 20px mantidas em qualquer tamanho de tela
+ * - Padding interno ajusta proporcionalmente
+ * - Font-sizes herdam dos estilos base
+ * 
+ * Herança de estilos:
+ * - .btn: botão amarelo padrão IMPERIUM
+ * - .input-box: estrutura de input com ícone
+ * - .corner-btn: botão home no canto
+ * - Tipografia: Poppins em todos os pesos
+ * 
+ * Consistência visual:
+ * - Cores idênticas ao login/cadastro
+ * - Espaçamentos harmônicos
+ * - Transições suaves (inherited)
+ * - Acessibilidade mantida
+ * 
+ * Manutenção:
+ * - Atualizações nos estilos base propagam automaticamente
+ * - Overrides .reset-only só onde necessário
+ * - Fácil adicionar novas páginas de auth
+ * - CSS modular e escalonável
+ */

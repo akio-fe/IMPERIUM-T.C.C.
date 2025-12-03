@@ -1,0 +1,321 @@
+<!--
+============================================================
+PÁGINA: Recuperação de Senha
+============================================================
+
+Propósito:
+Permitir que usuários que esqueceram sua senha solicitem um email
+de redefinição usando o serviço de autenticação do Firebase.
+
+Funcionalidades:
+- Formulário simples com campo de email
+- Validação client-side (HTML5 + JavaScript)
+- Envio de link de redefinição via Firebase Authentication
+- Feedback visual através do sistema de popups
+- Botão de retorno para tela de login
+- Loading state no botão durante envio
+
+Fluxo Completo:
+1. Usuário acessa a página (geralmente via link "Esqueceu a senha?")
+2. Informa o email cadastrado no sistema
+3. Clica em "Enviar link"
+4. JavaScript (reset_password.js) valida e envia requisição ao Firebase
+5. Firebase verifica se email existe e envia email com link único
+6. Email contém link válido por 1 hora
+7. Usuário clica no link e é redirecionado para página de redefinição
+8. Define nova senha e retorna ao login
+
+Integração Firebase:
+- sendPasswordResetEmail(): método do Firebase Auth
+- Email template configurado no Firebase Console
+- Link de redefinição aponta para página configurada no Firebase
+
+Segurança:
+- Link único (one-time use)
+- Expiração em 1 hora (padrão Firebase)
+- Rate limiting (máximo 5 envios/hora por IP)
+- Não revela se email existe no sistema (prevenção de enumeração)
+
+Dependências:
+- Firebase SDK 9.6.1 (modular)
+- BoxIcons 3.0.5 (ícones)
+- loginstyle.css (estilos base + overrides .reset-only)
+- popups.css (sistema de notificações)
+- popups.js (controle dos popups)
+- reset_password.js (lógica de envio)
+- firebase-config.js (configuração compartilhada do Firebase)
+
+Estilos:
+- Reutiliza layout base de loginstyle.css
+- Overrides específicos: .reset-only, .reset-form
+- Card centralizado sem painéis laterais
+- Responsivo para mobile
+
+Notas:
+- Mensagem genérica de sucesso (não revela se email existe)
+- Instrução para verificar spam
+- Link claro de retorno ao login
+-->
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <!-- ===== META TAGS ===== -->
+    <!-- Charset UTF-8: suporte a caracteres especiais e acentuação -->
+    <meta charset="UTF-8">
+    <!-- Compatibilidade com Internet Explorer: força modo edge (mais recente) -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Viewport: responsividade mobile (largura = dispositivo, zoom inicial 1.0) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Título exibido na aba do navegador -->
+    <title>Recuperar senha | IMPERIUM</title>
+
+    <!-- ===== ÍCONES BOXICONS ===== -->
+    <!-- Biblioteca de ícones: usado para o ícone de envelope no input -->
+    <!-- CDN: carregamento rápido sem necessidade de instalação local -->
+    <link href='https://cdn.boxicons.com/3.0.5/fonts/basic/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- ===== FAVICON ===== -->
+    <!-- Ícone exibido na aba do navegador (logo IMPERIUM) -->
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    
+    <!-- ===== FOLHAS DE ESTILO ===== -->
+    <!-- loginstyle.css: estilos base do layout de autenticação + overrides .reset-only -->
+    <link rel="stylesheet" href="../../assets/css/loginstyle.css">
+    <!-- popups.css: sistema de notificações/modais para feedback ao usuário -->
+    <link rel="stylesheet" href="../../assets/css/popups.css">
+</head>
+
+<body>
+    <!-- ===== BOTÃO DE RETORNO À HOME ===== -->
+    <!--
+    Botão fixo no canto superior esquerdo.
+    Permite usuário voltar à página inicial sem precisar usar o histórico do navegador.
+    
+    Características:
+    - Posição: fixed (sempre visível, mesmo com scroll)
+    - z-index: 9999 (fica sobre todos os outros elementos)
+    - Imagem: STICKEN.png (logo/mascote IMPERIUM)
+    - Hover: scale(1.08) para feedback visual
+    
+    Comportamento:
+    - Redireciona para index.php (home do e-commerce)
+    - Útil se usuário desistir de recuperar senha e quiser navegar
+    -->
+    <a href="../../../index.php">
+        <button class="corner-btn">
+            <img src="../../assets/img/ui/STICKEN.png" alt="home">
+        </button>
+    </a>
+
+    <!-- ===== CONTAINER PRINCIPAL: CARD DE RECUPERAÇÃO ===== -->
+    <!--
+    Layout simplificado reutilizando estilos de loginstyle.css.
+    
+    Classes aplicadas:
+    - container: estrutura base do card
+    - reset-only: override CSS que:
+      * Remove painéis laterais (toggle-box)
+      * Ajusta largura para 420px máximo
+      * Centraliza formulário
+      * Remove animações de flip
+    
+    Estrutura:
+    1. Container externo (cinza, borda arredondada)
+    2. Form-box interno (branco, padding confortável)
+    3. Formulário com título + campo + botão + link
+    -->
+    <div class="container reset-only">
+        <div class="form-box reset-form">
+            <!-- ===== FORMULÁRIO DE RECUPERAÇÃO DE SENHA ===== -->
+            <!--
+            Formulário simples com único campo de email.
+            
+            Atributos:
+            - id="forgotPasswordForm": referência para JavaScript
+            - autocomplete="on": permite navegador sugerir emails salvos
+            
+            Validações:
+            - HTML5: type="email" valida formato básico
+            - HTML5: required impede envio vazio
+            - JavaScript: validação adicional e mensagens customizadas
+            
+            Evento submit:
+            - Capturado por reset_password.js
+            - preventDefault() evita reload da página
+            - Lógica assíncrona (async/await) para Firebase
+            -->
+            <form id="forgotPasswordForm" autocomplete="on">
+                <!-- Título da página -->
+                <h1>Esqueci minha senha</h1>
+                
+                <!-- Descrição/instrução para o usuário -->
+                <p class="reset-description">Informe o e-mail cadastrado para receber o link de redefinição.</p>
+
+                <!-- ===== INPUT DE EMAIL ===== -->
+                <!--
+                Campo para o usuário digitar seu email cadastrado.
+                
+                Classes:
+                - input-box: container com posicionamento relativo para ícone
+                
+                Input:
+                - type="email": validação HTML5 de formato (xxx@xxx.xxx)
+                - id="reset-email": referência para JavaScript
+                - name="email": nome do campo no formulário
+                - placeholder: texto de exemplo/orientação
+                - required: campo obrigatório (não pode estar vazio)
+                
+                Ícone:
+                - BoxIcons bx-envelope: envelope estilizado
+                - Posicionado absolutamente à direita do input
+                - Meramente decorativo (melhora UX)
+                -->
+                <div class="input-box">
+                    <input type="email" id="reset-email" name="email" placeholder="meuemail@gmail.com" required>
+                    <i class='bx bx-envelope'></i>
+                </div>
+
+                <!-- ===== BOTÃO DE ENVIO ===== -->
+                <!--
+                Botão principal que submete o formulário.
+                
+                Atributos:
+                - type="submit": submete formulário ao clicar
+                - id="reset-submit": referência para JavaScript (loading state)
+                - class="btn": estilo padrão de botão (loginstyle.css)
+                
+                Estados gerenciados por JavaScript:
+                1. Normal: "Enviar link" (enabled)
+                2. Loading: "Enviando..." (disabled)
+                3. Sucesso: volta a "Enviar link" + mensagem verde
+                4. Erro: volta a "Enviar link" + mensagem vermelha
+                
+                Estilo:
+                - Fundo amarelo (#fde401) - cor tema IMPERIUM
+                - Largura 100% do container
+                - Altura fixa 48px
+                - Borda arredondada 8px
+                - Cursor pointer
+                -->
+                <button type="submit" id="reset-submit" class="btn">Enviar link</button>
+                
+                <!-- ===== TEXTO INFORMATIVO: SPAM ===== -->
+                <!--
+                Lembra usuário de verificar pasta de spam.
+                Emails de recuperação às vezes são filtrados como spam.
+                
+                Classes:
+                - reset-description: estilo de texto secundário
+                - small: tamanho de fonte reduzido (13px)
+                -->
+                <p class="reset-description small">Caso não encontre o e-mail, verifique a caixa de spam.</p>
+                
+                <!-- ===== LINK DE RETORNO AO LOGIN ===== -->
+                <!--
+                Link para voltar à tela principal de login/cadastro.
+                Útil se usuário lembrar a senha ou quiser tentar entrar novamente.
+                
+                Classes:
+                - back-login: estilo de link secundário com sublinhado
+                
+                Comportamento:
+                - Redireciona para cadastro_login.html
+                - Hover: remove sublinhado (feedback visual)
+                -->
+                <a class="back-login" href="./cadastro_login.html">Voltar para o login</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== SISTEMA DE POPUPS/NOTIFICAÇÕES ===== -->
+    <!--
+    Modal reutilizável para exibir mensagens de feedback ao usuário.
+    Sistema compartilhado entre todas as páginas de autenticação.
+    
+    Estrutura:
+    - popup-overlay: fundo escurecido semi-transparente (fullscreen)
+    - popup-card: card branco centralizado com mensagem
+    - popup-close: botão X para fechar (canto superior direito)
+    - popup-message: parágrafo com texto dinâmico
+    
+    Controle (popups.js):
+    - showPopup(message, color): exibe popup com mensagem e cor
+      * Cores: "green" (sucesso), "red" (erro), "blue" (info)
+    - hidePopup(): oculta popup
+    
+    Casos de uso nesta página:
+    1. Sucesso: "Enviamos um link de redefinição de senha para o seu e-mail."
+    2. Erro validação: "Por favor, informe um e-mail válido."
+    3. Erro Firebase: "Formato de e-mail inválido."
+    4. Erro rede: "Falha de conexão. Verifique sua internet."
+    
+    Fechamento:
+    - Clique no X
+    - Clique fora do card (no overlay)
+    - Automático após alguns segundos (opcional, não implementado aqui)
+    
+    Estado inicial:
+    - class="hidden": display: none (invisível até ser chamado)
+    -->
+    <div id="popup-overlay" class="hidden">
+        <div id="popup-card">
+            <!-- Botão fechar (símbolo × / times) -->
+            <span id="popup-close">&times;</span>
+            <!-- Mensagem dinâmica (atualizada por JavaScript) -->
+            <p id="popup-message"></p>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS JAVASCRIPT ===== -->
+    <!--
+    Ordem de carregamento:
+    1. popups.js: sistema de notificações (funções globais)
+    2. reset_password.js: lógica de recuperação de senha (módulo ES6)
+    -->
+    
+    <!-- ===== SISTEMA DE POPUPS ===== -->
+    <!--
+    Carregamento: script normal (não-módulo)
+    
+    Funções exportadas globalmente:
+    - showPopup(message, color)
+    - hidePopup()
+    
+    Event listeners:
+    - Clique em popup-close: fecha popup
+    - Clique em popup-overlay: fecha popup
+    
+    Uso por outros scripts:
+    window.showPopup("Mensagem", "green");
+    -->
+    <script src="../../assets/js/popups.js"></script>
+    
+    <!-- ===== LÓGICA DE RECUPERAÇÃO DE SENHA ===== -->
+    <!--
+    Módulo ES6 (type="module"):
+    - Permite uso de import/export
+    - Executa em strict mode automaticamente
+    - Variáveis não vazam para escopo global
+    - Top-level await suportado
+    
+    Funcionalidades:
+    - Importa Firebase SDK modular (9.6.1)
+    - Importa configuração do firebase-config.js
+    - Adiciona listener ao formulário
+    - Valida input de email
+    - Chama sendPasswordResetEmail(auth, email)
+    - Exibe feedback via showPopup()
+    - Gerencia loading state do botão
+    - Trata erros específicos do Firebase
+    
+    Dependências:
+    - Firebase App (initializeApp)
+    - Firebase Auth (getAuth, sendPasswordResetEmail)
+    - firebase-config.js (configuração compartilhada)
+    - popups.js (showPopup global)
+    -->
+    <script type="module" src="../../assets/js/reset_password.js"></script>
+</body>
+
+</html>

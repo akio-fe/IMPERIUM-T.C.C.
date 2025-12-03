@@ -190,7 +190,7 @@ function resolve_firebase_credentials_path(): ?string
 
     // 2ª prioridade: locais padrão do projeto
     $projectRoot = project_root_path();
-    $defaultFile = 'imperium-0001-firebase-adminsdk-fbsvc-ffc86182cf.json';
+    $defaultFile = 'imperium-0001-firebase-adminsdk-fbsvc-07070d9bcd.json';
     
     // Adiciona candidatos na ordem de busca
     $candidates[] = $projectRoot . '/../' . $defaultFile; // Diretório pai
