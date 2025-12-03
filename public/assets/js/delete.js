@@ -71,6 +71,11 @@ const app = initializeApp(firebaseConfig);
 // Obtém instância do serviço de autenticação
 const auth = getAuth(app);
 
+// ===== RESOLUÇÃO DINÂMICA DE CAMINHOS =====
+const scriptBaseUrl = new URL(import.meta.url);
+const DELETE_ENDPOINT = new URL("../../api/auth/delete.php", scriptBaseUrl).href;
+const HOME_URL = new URL("../../../index.php", scriptBaseUrl).href;
+
 // ===== SELEÇÃO DO BOTÃO DE EXCLUSÃO =====
 
 /**
@@ -148,7 +153,7 @@ if (btnDelete) {
        * - Pedidos relacionados
        * - Carrinho e favoritos
        */
-      const response = await fetch("../../api/auth/delete.php", {
+      const response = await fetch(DELETE_ENDPOINT, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + token,
@@ -177,7 +182,7 @@ if (btnDelete) {
         // Faz logout do Firebase (limpa sessão client-side)
         await signOut(auth);
         // Redireciona para página inicial
-        window.location.href = "../../../index.php";
+        window.location.href = HOME_URL;
       } else {
         // ===== ETAPA 7: TRATAMENTO DE ERROS ESPECÍFICOS =====
         

@@ -242,7 +242,7 @@ $header = generateHeader($conn, $filtro);
   </div>
   <!-- Script responsável pela funcionalidade de deleção de conta -->
   <!-- Implementa modal de confirmação e requisição AJAX para API -->
-  <script src="<?= htmlspecialchars(asset_path('js/delete.js'), ENT_QUOTES, 'UTF-8'); ?>"></script>
+  <script type="module" src="<?= htmlspecialchars(asset_path('js/delete.js'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 
 </html>
