@@ -179,13 +179,19 @@ const senhaconfInput = document.getElementById("confirma_senha");
  * 4. Firebase retorna credenciais
  * 5. Backend recebe token e cria sessão
  */
-document
-  .getElementById("googleButton")
-  .addEventListener("click", signInWithGoogle);
+const googleLoginButton = document.getElementById("googleButton");
+if (googleLoginButton) {
+  googleLoginButton.addEventListener("click", signInWithGoogle);
+} else {
+  console.warn("Elemento #googleButton não encontrado na página atual.");
+}
 
-document
-  .getElementById("googleButton2")
-  .addEventListener("click", signInWithGoogle);
+const googleSignupButton = document.getElementById("googleButton2");
+if (googleSignupButton) {
+  googleSignupButton.addEventListener("click", registerWithGoogle);
+} else {
+  console.warn("Elemento #googleButton2 não encontrado na página atual.");
+}
 
 // ===== LISTENER: FORMULÁRIO DE LOGIN =====
 /**
@@ -456,6 +462,86 @@ async function signInWithGoogle() {
   }
 }
 
+// ===== FUNÇÃO: CADASTRO COM GOOGLE =====
+/**
+ * Cria uma nova conta reutilizando o fluxo de OAuth do Google.
+ * Reaproveita os campos do formulário de cadastro para coletar CPF e demais dados obrigatórios.
+ */
+async function registerWithGoogle() {
+  try {
+    if (!formCadastro) {
+      showPopup("Formulário de cadastro não disponível nesta página.", "red");
+      return;
+    }
+
+    const nomeDigitado = (nomeInputCadastro?.value || "").trim();
+    const cpfDigitado = (cpfInputCadastro?.value || "").trim();
+    const telefoneDigitado = (telInputCadastro && telInputCadastro.value.trim()) || "";
+    const dataNascDigitada = (dataNascInput && dataNascInput.value.trim()) || "";
+    const emailDigitado = (emailInputCadastro?.value || "").trim();
+
+    if (!cpfDigitado) {
+      showPopup("Informe seu CPF para concluir o cadastro com o Google.", "red");
+      return;
+    }
+
+    const cpfSomenteDigitos = cpfDigitado.replace(/\D/g, "");
+    if (!cpfSomenteDigitos) {
+      showPopup("Informe um CPF válido para concluir o cadastro com o Google.", "red");
+      return;
+    }
+
+    showPopup("Abrindo o Google para finalizar seu cadastro...", "blue");
+
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    if (!user?.email) {
+      throw new Error("Não foi possível recuperar o e-mail da sua conta Google.");
+    }
+
+    const profilePayload = {
+      uid: user.uid,
+      nome: nomeDigitado || user.displayName || "",
+      cpf: cpfSomenteDigitos,
+      tel: telefoneDigitado || null,
+      datanasc: dataNascDigitada || null,
+      email: emailDigitado || user.email,
+    };
+
+    await persistGoogleUserProfile(user, profilePayload);
+
+    showPopup("Conta criada com sucesso! Efetuando login...", "green");
+    formCadastro.reset();
+
+    await processBackendLogin(user);
+  } catch (error) {
+    console.error("Erro ao criar conta com o Google:", error);
+
+    if (error.code) {
+      let friendlyMessage = "Erro ao criar conta com o Google.";
+      switch (error.code) {
+        case "auth/popup-closed-by-user":
+          friendlyMessage = "O popup do Google foi fechado antes da conclusão.";
+          break;
+        case "auth/account-exists-with-different-credential":
+          friendlyMessage =
+            "Já existe uma conta com este e-mail usando outro método. Faça login e vincule sua conta.";
+          break;
+        case "auth/cancelled-popup-request":
+          friendlyMessage = "Outra tentativa de login com Google já está em andamento.";
+          break;
+        default:
+          friendlyMessage = error.message || friendlyMessage;
+          break;
+      }
+      showPopup(friendlyMessage, "red");
+    } else {
+      showPopup(error.message || "Não foi possível concluir o cadastro com o Google.", "red");
+    }
+  }
+}
+
 // ===== RESOLUÇÃO DINÂMICA DE CAMINHOS =====
 /**
  * Determina caminho base da pasta /public/ dinamicamente.
@@ -490,6 +576,7 @@ const PUBLIC_ROOT = resolvePublicRoot();
 const PROJECT_ROOT = PUBLIC_ROOT.replace(/\/public$/, "");
 const API_LOGIN_URL = `${PUBLIC_ROOT}/api/auth/login.php`;
 const HOME_URL = `${PROJECT_ROOT || ""}/index.php`;
+const CHECKOUT_ENDPOINT = `${PUBLIC_ROOT}/pages/checkout/checkout.php`;
 
 // ===== FUNÇÃO: PROCESSAR LOGIN NO BACKEND PHP =====
 /**
@@ -594,4 +681,75 @@ async function processBackendLogin(user) {
     console.error("Erro ao enviar token para o backend:", error);
     showPopup("Erro na comunicação com o servidor.", "red");
   }
+}
+
+// ===== FUNÇÃO AUXILIAR: SALVAR PERFIL VIA CHECKOUT =====
+/**
+ * Envia os dados coletados no formulário + perfil do Google para o backend inserir o usuário no MySQL.
+ * @param {import("firebase/auth").User} user - Usuário autenticado no Firebase.
+ * @param {Object} profileData - Dados complementares preenchidos no formulário.
+ */
+async function persistGoogleUserProfile(user, profileData) {
+  const sanitizedCpf = (profileData.cpf || "").replace(/\D/g, "");
+  if (!sanitizedCpf) {
+    throw new Error("Informe um CPF válido para concluir o cadastro.");
+  }
+
+  let resolvedName = (profileData.nome || "").trim();
+  if (!resolvedName) {
+    resolvedName = (user.displayName || "").trim();
+  }
+
+  if (!resolvedName) {
+    throw new Error("Informe seu nome completo para finalizar o cadastro com o Google.");
+  }
+
+  const resolvedEmail = (profileData.email || user.email || "").trim();
+  if (!resolvedEmail) {
+    throw new Error("Não foi possível identificar um e-mail válido para o cadastro.");
+  }
+
+  const payload = {
+    uid: user.uid,
+    nome: resolvedName,
+    cpf: sanitizedCpf,
+    email: resolvedEmail,
+  };
+
+  if (profileData.tel) {
+    const sanitizedTel = profileData.tel.replace(/\D/g, "");
+    if (sanitizedTel) {
+      payload.tel = sanitizedTel;
+    }
+  }
+
+  if (profileData.datanasc) {
+    payload.datanasc = profileData.datanasc;
+  }
+
+  const idToken = await user.getIdToken();
+  const response = await fetch(CHECKOUT_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const rawBody = await response.text();
+  let result;
+
+  try {
+    result = JSON.parse(rawBody);
+  } catch (parseError) {
+    console.error("Resposta inesperada do checkout:", rawBody);
+    throw new Error("Resposta inesperada do servidor durante o cadastro.");
+  }
+
+  if (!response.ok || !result.success) {
+    throw new Error(result?.message || "Falha ao salvar seus dados no servidor.");
+  }
+
+  return result;
 }
