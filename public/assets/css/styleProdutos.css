@@ -40,13 +40,6 @@ body {
   color: #f0e6d2;
 }
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 40px;
-}
-
 header img.logo {
   height: 70px;
 }
@@ -113,9 +106,12 @@ header img.logo {
 }
 
 .icons img {
-  height: 32px;
-  cursor: pointer;
-  transition: filter 0.2s ease;
+    height: 50px;
+    width: 50px;
+    object-fit: scale-down;
+    cursor: pointer;
+    border-radius: 15px;
+    background: #f1c40f;
 }
 
 .icons img:hover {
@@ -128,8 +124,6 @@ header img.logo {
   display: flex;
   justify-content: center;
   align-items: center; /* centraliza verticalmente os itens */
-  flex-wrap: wrap;
-  gap: 15px;
   margin-top: 30px;
   padding: 0 20px;
 }
@@ -231,5 +225,56 @@ header img.logo {
   header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .produtos{
+    grid-template-columns: repeat(2, 1fr);
+    padding: 3%;
+  }
+
+  .produto{
+    height: 350px;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 0;
+  }
+
+  .produto h3{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    font-size: 16px;
+    margin: 0;
+    width: 100%;
+  }
+
+  .produto .preco{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    margin: 0;
+  }
+
+  .produto a{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 768px) {
+
+    .filtros{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 30px;
+      padding: 0 20px;
+    }
+
   }
 }

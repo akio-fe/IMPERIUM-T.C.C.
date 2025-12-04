@@ -306,11 +306,12 @@ footer .Localizacao {
 /* ===================================================== */
 
 .produtos-section {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  padding: 20px;
-  max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 900px;
+    gap: 20px;
+    padding: 20px;
 }
 
 .produto-card {
@@ -330,14 +331,19 @@ footer .Localizacao {
   text-decoration: none;
   color: inherit;
   display: block;
+  width: 300px;
 }
 
-.produto-card img {
-  width: 100%;
-  height: 250px;
-  object-fit: cover;
-  display: block;
+.produto-card .cardImg {
+    width: 100%;
+    height: auto;       /* card mais baixo */
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    background-color: #f4f4f4; /* fundo neutro para imagens menores */
+    padding: 10px; /* opcional: deixa melhor visual */
 }
+
 
 .produto-card h3 {
   font-family: "Poppins", sans-serif;
@@ -365,14 +371,6 @@ footer .Localizacao {
   .produtos-section {
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
-  }
-  
-  .section-content {
-    flex-direction: column !important;
-  }
-  
-  .section-content-reverse {
-    flex-direction: column !important;
   }
 }
 
@@ -402,6 +400,17 @@ footer .Localizacao {
     padding: 10px;
     gap: 15px;
   }
+
+  .produto-card .cardImg {
+    display: flex !important;
+    width: 100%;
+    height: auto;       /* card mais baixo */
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    background-color: #f4f4f4; /* fundo neutro para imagens menores */
+    padding: 10px; /* opcional: deixa melhor visual */
+} 
 }
 
 /* Responsivo para mobile pequeno */
@@ -409,9 +418,44 @@ footer .Localizacao {
   .produtos-section {
     grid-template-columns: 1fr;
     gap: 15px;
+    width: 100%;
   }
 
-  .produto-card img {
+  .produto-card .cardImg {
     height: 220px;
   }
+}
+
+@media (max-width: 768px) {
+  .produto-card .cardImg {
+    display: flex !important;
+     width: 100%;
+    height: auto;       /* card mais baixo */
+    object-fit: contain;
+    object-position: center;
+    background-color: #f4f4f4; /* fundo neutro para imagens menores */
+}
+
+@media (max-width: 480px) {
+  .produto-card .cardImg {
+    height: 150px;
+    padding: 0;
+    object-fit: contain;
+    object-fit: left;
+  }
+
+  .produto-card{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0;
+  }
+
+  .produto-card h3{
+    width: 100px;
+    height: 50px;
+    padding: 3px;
+  }
+}
 }
