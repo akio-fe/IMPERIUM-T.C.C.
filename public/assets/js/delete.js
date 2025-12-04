@@ -71,10 +71,42 @@ const app = initializeApp(firebaseConfig);
 // Obtém instância do serviço de autenticação
 const auth = getAuth(app);
 
-// ===== RESOLUÇÃO DINÂMICA DE CAMINHOS =====
-const scriptBaseUrl = new URL(import.meta.url);
-const DELETE_ENDPOINT = new URL("../../api/auth/delete.php", scriptBaseUrl).href;
-const HOME_URL = new URL("../../../index.php", scriptBaseUrl).href;
+// ===== RESOLUÇÃO DE CAMINHOS =====
+/**
+ * Determina o caminho raiz da pasta /public/ dinamicamente.
+ * 
+ * Útil para aplicações que podem estar em subpastas.
+ * 
+ * Exemplos:
+ * - URL: http://localhost/imperium/public/pages/auth/handler.html
+ * - Retorno: "/imperium/public"
+ * 
+ * - URL: http://localhost/public/pages/auth/handler.html
+ * - Retorno: "/public"
+ * 
+ * @returns {string} - Caminho base da pasta public
+ */
+const resolvePublicRoot = () => {
+  const { pathname } = window.location;
+  const publicIndex = pathname.indexOf("/public/");
+  if (publicIndex === -1) {
+    return "";
+  }
+  return `${pathname.slice(0, publicIndex)}/public`;
+};
+
+/**
+ * URLs da aplicação:
+ * - PUBLIC_ROOT: base da pasta public (/imperium/public)
+ * - PROJECT_ROOT: raiz do projeto (/imperium)
+ * - AUTH_PAGE: página de login/cadastro
+ * - CHECKOUT_ENDPOINT: API para salvar usuário no MySQL
+ * - HOME_URL: página inicial após login
+ */
+const PUBLIC_ROOT = resolvePublicRoot();
+const PROJECT_ROOT = PUBLIC_ROOT.replace(/\/public$/, "");
+const DELETE_ENDPOINT = `${PUBLIC_ROOT}/api/auth/delete.php`;
+const HOME_URL = `${PROJECT_ROOT || ""}/index.php`;
 
 // ===== SELEÇÃO DO BOTÃO DE EXCLUSÃO =====
 

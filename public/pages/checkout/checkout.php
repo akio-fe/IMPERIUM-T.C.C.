@@ -1,7 +1,8 @@
 <?php
 /**
  * Endpoint: api/cadastro.php
-<?php
+ * Responsável por inserir usuários no MySQL após verificação de e-mail.
+ */
 
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);

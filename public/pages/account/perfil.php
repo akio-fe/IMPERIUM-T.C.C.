@@ -222,7 +222,7 @@ $header = generateHeader($conn, $filtro);
         </div>
         <!-- Botão para deletar conta (confirmação via JavaScript) -->
         <div class="edit-btn">
-          <a href="#" id="btn-delete-account">DELETAR</a>
+          <button type="button" id="btn-delete-account">DELETAR</button>
         </div>
       </div>
 

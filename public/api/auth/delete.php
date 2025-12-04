@@ -18,7 +18,7 @@ use Lcobucci\JWT\UnencryptedToken;
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Methods: POST, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Authorization, Content-Type');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -26,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'DELETE'], true)) {
     respondJson(405, [
         'success' => false,
-        'message' => 'Método não permitido. Utilize POST.'
+        'message' => 'Método não permitido. Utilize POST ou DELETE.'
     ]);
 }
 
@@ -95,9 +95,22 @@ $stmt->bind_result($userId);
 
 if (!$stmt->fetch()) {
     $stmt->close();
-    respondJson(404, [
-        'success' => false,
-        'message' => 'Usuário não encontrado no banco de dados.'
+    try {
+        $auth->deleteUser($uid);
+    } catch (UserNotFound $e) {
+        error_log('Usuário não encontrado no Firebase durante exclusão sem registro local: ' . $uid);
+    } catch (AuthException | FirebaseException $e) {
+        error_log('Falha ao remover usuário no Firebase (sem registro local): ' . $e->getMessage());
+        respondJson(500, [
+            'success' => false,
+            'message' => 'Não foi possível remover sua conta no Firebase. Tente novamente mais tarde.',
+            'details' => $e->getMessage()
+        ]);
+    }
+
+    respondJson(200, [
+        'success' => true,
+        'message' => 'Conta removida do Firebase. Nenhum dado local foi encontrado.'
     ]);
 }
 
